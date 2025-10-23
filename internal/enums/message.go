@@ -1,0 +1,15 @@
+package enums
+
+type MessageSendingStatus string
+
+const (
+	StatusPending MessageSendingStatus = "PENDING"
+	StatusSent    MessageSendingStatus = "SENT"
+	StatusFailed  MessageSendingStatus = "FAILED"
+)
+
+type MessageChannel string
+
+const (
+	SMS MessageChannel = "SMS"
+)

@@ -1,0 +1,125 @@
+basePath: /
+definitions:
+  apierror.APIError:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  models.GetMessagesData:
+    properties:
+      enabled:
+        type: boolean
+      status:
+        type: string
+    type: object
+  models.GetMessagesResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.GetMessagesData'
+      result:
+        $ref: '#/definitions/apierror.APIError'
+    type: object
+  models.SetMessageAutoSendData:
+    properties:
+      enabled:
+        type: boolean
+      status:
+        type: string
+    type: object
+  models.SetMessageAutoSendRequest:
+    properties:
+      action:
+        type: string
+    type: object
+  models.SetMessageAutoSendResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.SetMessageAutoSendData'
+      result:
+        $ref: '#/definitions/apierror.APIError'
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@ulak.com
+    name: API Support
+  description: API for managing messages and auto-send functionality
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Ulak API
+  version: "1.0"
+paths:
+  /messages/auto-send:
+    post:
+      consumes:
+      - application/json
+      description: Enable or disable automatic message sending
+      parameters:
+      - description: Auto-send configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SetMessageAutoSendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SetMessageAutoSendResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.SetMessageAutoSendResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.SetMessageAutoSendResponse'
+      summary: Set message auto-send configuration
+      tags:
+      - messages
+  /messages/sent:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of sent messages with pagination
+      parameters:
+      - default: 10
+        description: Number of messages to return
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      - default: false
+        description: Filter by delivery status
+        in: query
+        name: isDelivered
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetMessagesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GetMessagesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GetMessagesResponse'
+      summary: Get sent messages
+      tags:
+      - messages
+swagger: "2.0"
