@@ -73,7 +73,7 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: API key authentication. Use your API key in the x-ins-auth-key header.
+  description: API key authentication.
   title: Ulak API
   version: "1.0"
 paths:

@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API key authentication. Use your API key in the x-ins-auth-key header.",
+        "description": "API key authentication.",
         "title": "Ulak API",
         "contact": {},
         "version": "1.0"

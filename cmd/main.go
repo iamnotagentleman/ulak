@@ -19,7 +19,7 @@ import (
 	"ulak/middleware"
 	"ulak/pkg/notification"
 
-	_ "ulak/docs"
+	"ulak/docs"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -68,7 +68,8 @@ func main() {
 	processorWorker := processor.NewMessageProcessor(cfg.MsgWorker, kvStore, msgStore, &webhookService)
 
 	// Start populator worker
-	populatorTicker := time.NewTicker(5 * time.Second)
+	populatorTicker := time.NewTicker(cfg.MsgWorker.PopulatorInterval)
+	defer populatorTicker.Stop()
 	if err := populatorWorker.Start(ctx, populatorTicker, messagesCh); err != nil {
 		log.Fatalf("Failed to start populator worker: %v", err)
 	}
@@ -83,8 +84,18 @@ func main() {
 	s := service.NewService(kvStore, msgStore)
 	handler := handlers.NewHandler(s)
 
+	// Configure Swagger with dynamic host and basepath
+	docs.SwaggerInfo.Host = cfg.Server.SwaggerHost
+	docs.SwaggerInfo.BasePath = cfg.Server.SwaggerBasePath
+
 	// Setup HTTP server
 	mux := http.NewServeMux()
+
+	// Health check endpoint
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
 
 	mux.Handle("POST /messages/auto-send", middleware.ApiKeyAuthMiddleware(cfg.Auth, handlers.WithHTTPIn(handler.SetMessageAutoSend, models.SetMessageAutoSendRequest{})))
 	mux.Handle("GET /messages/sent", middleware.ApiKeyAuthMiddleware(cfg.Auth, handlers.WithHTTPIn(handler.GetSentMessages, models.GetMessagesRequest{})))
@@ -93,14 +104,14 @@ func main() {
 	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + cfg.Server.Port,
 		Handler: mux,
 	}
 
 	// Start HTTP server in a goroutine
 	go func() {
-		log.Println("Listening on port 8080")
-		log.Println("Swagger UI available at http://localhost:8080/swagger/")
+		log.Printf("Listening on port %s", cfg.Server.Port)
+		log.Printf("Swagger UI available at http://%s/swagger/", cfg.Server.SwaggerHost)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("HTTP server error: %v", err)
 		}
@@ -115,21 +126,21 @@ func main() {
 	log.Println("Shutdown signal received, initiating graceful shutdown...")
 
 	// Create shutdown context with timeout
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cfg.Server.ShutdownTimeout)
 	defer shutdownCancel()
 
 	// Cancel worker context
 	cancel()
 
 	// Stop populator worker first (stops fetching new messages)
-	if err := populatorWorker.Stop(10 * time.Second); err != nil {
+	if err := populatorWorker.Stop(cfg.Server.WorkerStopTimeout); err != nil {
 		log.Printf("Error stopping populator worker: %v", err)
 	} else {
 		log.Println("Populator worker stopped successfully")
 	}
 
 	// Stop processor worker
-	if err := processorWorker.Stop(10 * time.Second); err != nil {
+	if err := processorWorker.Stop(cfg.Server.WorkerStopTimeout); err != nil {
 		log.Printf("Error stopping processor worker: %v", err)
 	} else {
 		log.Println("Processor worker stopped successfully")

@@ -257,7 +257,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Ulak API",
-	Description:      "API key authentication. Use your API key in the x-ins-auth-key header.",
+	Description:      "API key authentication.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }
