@@ -11,13 +11,20 @@ import (
 )
 
 type EnvVars struct {
-	Redis    Redis
-	Postgres Postgres
+	Redis     Redis
+	Postgres  Postgres
+	MsgWorker MessageWorker
 }
 
 type Common struct {
-	KeyValProvider string `env:"KEY_VAL_PROVIDER" default:"redis"`
-	BaseURL        string `env:"BASE_URL" default:"http://127.0.0.1:8080"`
+	MessageChannelSize int `env:"MESSAGE_CHANNEL_SIZE" envDefault:"500"`
+}
+
+type MessageWorker struct {
+	MaxRecordsPerRead         int `env:"MAX_RECORDS_PER_RECORD" default:"10"`
+	MessageChannelSendTimeout int `env:"MESSAGE_CHANNEL_SEND_TIMEOUT" default:"10"`
+	RateLimitPerMinute        int `env:"RATE_LIMIT_PER_MINUTE" default:"1"`
+	RateLimitBurst            int `env:"RATE_LIMIT_BURST" default:"2"`
 }
 
 type Redis struct {
@@ -59,10 +66,16 @@ func LoadEnvVars() (*EnvVars, error) {
 	if err := env.Set(&p); err != nil {
 		return nil, fmt.Errorf("loading postgres environment variables failed, %s", err.Error())
 	}
+	mspW := MessageWorker{}
+
+	if err := env.Set(&mspW); err != nil {
+		return nil, fmt.Errorf("loading message worker environment variables failed, %s", err.Error())
+	}
 
 	envVars := &EnvVars{
-		Redis:    r,
-		Postgres: p,
+		Redis:     r,
+		Postgres:  p,
+		MsgWorker: mspW,
 	}
 
 	return envVars, nil

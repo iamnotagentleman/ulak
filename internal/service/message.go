@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"ulak/internal/apierror"
+	"ulak/internal/enums"
 	"ulak/internal/models"
 )
 
@@ -26,7 +27,7 @@ func (s *service) GetSentMessages(ctx context.Context, req models.GetMessagesReq
 		offset = 0
 	}
 
-	statusFilter := "SENT"
+	statusFilter := enums.StatusSent
 
 	// Fetch messages from the store
 	messages, err := s.messageStore.List(ctx, limit, offset, statusFilter)
