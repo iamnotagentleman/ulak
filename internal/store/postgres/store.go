@@ -84,7 +84,7 @@ func (ps *postgresStore) GetByID(ctx context.Context, id string) (*models.Messag
 
 func (ps *postgresStore) GetByOffset(ctx context.Context, offset int64) (*models.Message, error) {
 	var msg models.Message
-	result := ps.db.WithContext(ctx).Where("offset = ?", offset).First(&msg)
+	result := ps.db.WithContext(ctx).Where("record_offset = ?", offset).First(&msg)
 
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -96,7 +96,30 @@ func (ps *postgresStore) GetByOffset(ctx context.Context, offset int64) (*models
 	return &msg, nil
 }
 
-func (ps *postgresStore) List(ctx context.Context, limit, offset int, status string) ([]*models.Message, error) {
+func (ps *postgresStore) ListByOffset(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+	var messages []*models.Message
+
+	query := ps.db.WithContext(ctx).Model(&models.Message{}).Where("record_offset > ?", offset)
+
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	query = query.Order("record_offset ASC")
+
+	result := query.Find(&messages)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to list messages by offset greater than %d: %w", offset, result.Error)
+	}
+
+	return messages, nil
+}
+
+func (ps *postgresStore) List(ctx context.Context, limit, skip int, status enums.MessageSendingStatus) ([]*models.Message, error) {
 	var messages []*models.Message
 
 	query := ps.db.WithContext(ctx).Model(&models.Message{})
@@ -108,8 +131,8 @@ func (ps *postgresStore) List(ctx context.Context, limit, offset int, status str
 	if limit > 0 {
 		query = query.Limit(limit)
 	}
-	if offset > 0 {
-		query = query.Offset(offset)
+	if skip > 0 {
+		query = query.Offset(skip)
 	}
 
 	query = query.Order("created_at DESC")
