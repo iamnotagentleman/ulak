@@ -10,6 +10,7 @@ import (
 
 type Message struct {
 	ID        uuid.UUID                  `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	To        string                     `json:"to" gorm:"type:varchar(255);not null"`
 	Message   string                     `json:"message" gorm:"type:text;not null" validate:"max=4096"`
 	Offset    int64                      `json:"offset" gorm:"column:record_offset;type:serial;autoIncrement;uniqueIndex"`
 	Channel   enums.MessageChannel       `json:"channel" gorm:"type:varchar(50);not null"`

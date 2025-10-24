@@ -10,6 +10,7 @@ import (
 	"ulak/internal/config"
 	"ulak/internal/models"
 	"ulak/internal/store/keyval"
+	"ulak/pkg/notification"
 
 	"golang.org/x/time/rate"
 
@@ -17,9 +18,9 @@ import (
 )
 
 type MessageProcessorWorker struct {
-	cfg     config.MessageWorker
-	kvStore keyval.KeyValueStore
-
+	cfg                 config.MessageWorker
+	kvStore             keyval.KeyValueStore
+	notificationService notification.NotificationService
 	// Metrics
 	processedCount atomic.Int64
 	failedCount    atomic.Int64
@@ -31,11 +32,12 @@ type MessageProcessorWorker struct {
 	mu     sync.Mutex
 }
 
-func NewMessageProcessor(cfg config.MessageWorker, store keyval.KeyValueStore) *MessageProcessorWorker {
+func NewMessageProcessor(cfg config.MessageWorker, store keyval.KeyValueStore, notificationService notification.NotificationService) *MessageProcessorWorker {
 	return &MessageProcessorWorker{
-		cfg:     cfg,
-		kvStore: store,
-		done:    make(chan struct{}),
+		cfg:                 cfg,
+		kvStore:             store,
+		notificationService: notificationService,
+		done:                make(chan struct{}),
 	}
 }
 
@@ -52,6 +54,15 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 		"offset":     msg.Offset,
 	}).Debug("Processing message")
 
+	input := notification.Input{
+		To:      msg.To,
+		Content: msg.Content,
+	}
+
+	resp, err := p.notificationService.SendNotification(ctx, input)
+	if err != nil {
+		return err
+	}
 	println(msg)
 
 	return nil
