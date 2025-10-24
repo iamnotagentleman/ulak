@@ -25,6 +25,7 @@ type MessagePopulatorWorker struct {
 	cfg                 config.MessageWorker
 	store               message.MessageStore
 	lastProcessedOffset atomic.Int64
+	isProcessing        atomic.Bool
 
 	cancel context.CancelFunc
 	done   chan struct{}
@@ -80,12 +81,21 @@ func (p *MessagePopulatorWorker) populate(ctx context.Context, ticker *time.Tick
 	for {
 		select {
 		case <-ticker.C:
+
+			// Skip tick if still processing previous batch
+			if !p.isProcessing.CompareAndSwap(false, true) {
+				log.Warn("skipping tick: still processing previous message batch")
+				continue
+			}
+
+			// Process messages
 			messages := p.fetchPendingMessages(ctx)
 
 			for _, msg := range messages {
 				err := p.sendMessage(ctx, messagesCh, msg)
 
 				if err != nil {
+					p.isProcessing.Store(false)
 					return err
 				}
 
@@ -95,6 +105,9 @@ func (p *MessagePopulatorWorker) populate(ctx context.Context, ticker *time.Tick
 				newOffset := messages[len(messages)-1].Offset
 				p.lastProcessedOffset.Store(newOffset)
 			}
+
+			// Mark processing as complete
+			p.isProcessing.Store(false)
 
 		case <-ctx.Done():
 			return ctx.Err()
