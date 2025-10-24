@@ -10,6 +10,7 @@ import (
 	"time"
 	"ulak/internal/config"
 	"ulak/internal/handlers"
+	"ulak/internal/manager"
 	"ulak/internal/models"
 	"ulak/internal/service"
 	"ulak/internal/store/postgres"
@@ -67,21 +68,13 @@ func main() {
 	populatorWorker := populator.GetMessagePopulator(cfg.MsgWorker, msgStore)
 	processorWorker := processor.NewMessageProcessor(cfg.MsgWorker, kvStore, msgStore, &webhookService)
 
-	// Start populator worker
 	populatorTicker := time.NewTicker(cfg.MsgWorker.PopulatorInterval)
 	defer populatorTicker.Stop()
-	if err := populatorWorker.Start(ctx, populatorTicker, messagesCh); err != nil {
-		log.Fatalf("Failed to start populator worker: %v", err)
-	}
-	log.Println("Populator worker started")
 
-	// Start processor worker
-	if err := processorWorker.Start(ctx, messagesCh, nil); err != nil {
-		log.Fatalf("Failed to start processor worker: %v", err)
-	}
-	log.Println("Processor worker started")
+	workerManager := manager.NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, populatorTicker, cfg.Server)
+	workerManager.Start()
 
-	s := service.NewService(kvStore, msgStore)
+	s := service.NewService(kvStore, msgStore, workerManager)
 	handler := handlers.NewHandler(s)
 
 	// Configure Swagger with dynamic host and basepath
@@ -97,8 +90,8 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	mux.Handle("POST /messages/auto-send", middleware.ApiKeyAuthMiddleware(cfg.Auth, handlers.WithHTTPIn(handler.SetMessageAutoSend, models.SetMessageAutoSendRequest{})))
-	mux.Handle("GET /messages/sent", middleware.ApiKeyAuthMiddleware(cfg.Auth, handlers.WithHTTPIn(handler.GetSentMessages, models.GetMessagesRequest{})))
+	mux.Handle("POST /messages/auto-send", middleware.ApiKeyAuthMiddleware(cfg.Auth, middleware.SerializeRequestsMiddleware(http.HandlerFunc(handler.SetMessageAutoSend))))
+	mux.Handle("GET /messages/sent", middleware.ApiKeyAuthMiddleware(cfg.Auth, http.HandlerFunc(handler.GetSentMessages)))
 
 	// Swagger UI endpoint
 	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
@@ -132,20 +125,7 @@ func main() {
 	// Cancel worker context
 	cancel()
 
-	// Stop populator worker first (stops fetching new messages)
-	if err := populatorWorker.Stop(cfg.Server.WorkerStopTimeout); err != nil {
-		log.Printf("Error stopping populator worker: %v", err)
-	} else {
-		log.Println("Populator worker stopped successfully")
-	}
-
-	// Stop processor worker
-	if err := processorWorker.Stop(cfg.Server.WorkerStopTimeout); err != nil {
-		log.Printf("Error stopping processor worker: %v", err)
-	} else {
-		log.Println("Processor worker stopped successfully")
-	}
-
+	workerManager.Stop()
 	// Close message channel
 	close(messagesCh)
 

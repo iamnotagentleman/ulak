@@ -128,7 +128,6 @@ func (p *MessagePopulatorWorker) populate(ctx context.Context, ticker *time.Tick
 
 			// Mark processing as complete
 			p.isProcessing.Store(false)
-
 		case <-ctx.Done():
 			return ctx.Err()
 		}
@@ -153,7 +152,6 @@ func (p *MessagePopulatorWorker) Start(parentCtx context.Context, ticker *time.T
 	// Start the worker goroutine
 	go func() {
 		defer close(p.done)
-		defer ticker.Stop()
 
 		err := p.populate(ctx, ticker, messagesCh)
 

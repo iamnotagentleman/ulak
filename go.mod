@@ -6,7 +6,6 @@ toolchain go1.24.9
 
 require (
 	github.com/codingconcepts/env v0.0.0-20240618133406-5b0845441187
-	github.com/ggicci/httpin v0.20.2
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.16.0
@@ -22,7 +21,6 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/ggicci/owl v0.8.2 // indirect
 	github.com/go-openapi/jsonpointer v0.22.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.2 // indirect
 	github.com/go-openapi/spec v0.22.0 // indirect

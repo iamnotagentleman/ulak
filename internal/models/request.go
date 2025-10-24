@@ -1,11 +1,12 @@
 package models
 
+import "ulak/internal/enums"
+
 type SetMessageAutoSendRequest struct {
-	Action string `json:"action"`
+	Action enums.AutoSendAction `json:"action" enums:"start,stop"`
 }
 
 type GetMessagesRequest struct {
-	Limit       int  `json:"limit"`
-	Offset      int  `json:"offset"`
-	IsDelivered bool `json:"isDelivered"`
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
 }

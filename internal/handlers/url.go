@@ -3,10 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"ulak/internal/models"
 	"ulak/internal/service"
-
-	"github.com/ggicci/httpin"
 )
 
 type Handler struct {
@@ -17,10 +16,6 @@ func NewHandler(service service.Service) *Handler {
 	return &Handler{
 		Service: service,
 	}
-}
-
-func WithHTTPIn[T any](handler http.HandlerFunc, input T) http.Handler {
-	return httpin.NewInput(input)(handler)
 }
 
 // SetMessageAutoSend godoc
@@ -36,8 +31,14 @@ func WithHTTPIn[T any](handler http.HandlerFunc, input T) http.Handler {
 // @Security     ApiKeyAuth
 // @Router       /messages/auto-send [post]
 func (h *Handler) SetMessageAutoSend(w http.ResponseWriter, req *http.Request) {
-	input := req.Context().Value(httpin.Input).(*models.SetMessageAutoSendRequest)
-	val := h.Service.SetMessageAutoSend(req.Context(), *input)
+	var input models.SetMessageAutoSendRequest
+
+	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	val := h.Service.SetMessageAutoSend(req.Context(), input)
 	res, err := json.Marshal(val)
 
 	if err != nil {
@@ -45,8 +46,14 @@ func (h *Handler) SetMessageAutoSend(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Determine status code based on response
+	statusCode := http.StatusOK
+	if val.Result != nil && val.Result.Code != 0 {
+		statusCode = val.Result.Code
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(statusCode)
 	w.Write(res)
 }
 
@@ -65,8 +72,24 @@ func (h *Handler) SetMessageAutoSend(w http.ResponseWriter, req *http.Request) {
 // @Security     ApiKeyAuth
 // @Router       /messages/sent [get]
 func (h *Handler) GetSentMessages(w http.ResponseWriter, req *http.Request) {
-	input := req.Context().Value(httpin.Input).(*models.GetMessagesRequest)
-	val := h.Service.GetSentMessages(req.Context(), *input)
+	var input models.GetMessagesRequest
+
+	// Parse query parameters
+	queryParams := req.URL.Query()
+
+	if limitStr := queryParams.Get("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil {
+			input.Limit = limit
+		}
+	}
+
+	if offsetStr := queryParams.Get("offset"); offsetStr != "" {
+		if offset, err := strconv.Atoi(offsetStr); err == nil {
+			input.Offset = offset
+		}
+	}
+
+	val := h.Service.GetSentMessages(req.Context(), input)
 	res, err := json.Marshal(val)
 
 	if err != nil {
@@ -74,8 +97,13 @@ func (h *Handler) GetSentMessages(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(res)
+	// Determine status code based on response
+	statusCode := http.StatusOK
+	if val.Result != nil && val.Result.Code != 0 {
+		statusCode = val.Result.Code
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	w.Write(res)
 }

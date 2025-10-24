@@ -151,7 +151,7 @@
                 "offset": {
                     "type": "integer"
                 },
-                "total_count": {
+                "totalCount": {
                     "type": "integer"
                 }
             }
@@ -206,11 +206,11 @@
         "models.SetMessageAutoSendData": {
             "type": "object",
             "properties": {
-                "enabled": {
+                "isPopulatorEnabled": {
                     "type": "boolean"
                 },
-                "status": {
-                    "type": "string"
+                "isProcessorEnabled": {
+                    "type": "boolean"
                 }
             }
         },
@@ -218,7 +218,11 @@
             "type": "object",
             "properties": {
                 "action": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "start",
+                        "stop"
+                    ]
                 }
             }
         },

@@ -16,3 +16,10 @@ const (
 	ChannelPush    MessageChannel = "PUSH"
 	ChannelWebhook MessageChannel = "WEBHOOK"
 )
+
+type AutoSendAction string
+
+const (
+	AutoSendStart AutoSendAction = "start"
+	AutoSendStop  AutoSendAction = "stop"
+)

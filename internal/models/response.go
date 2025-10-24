@@ -3,13 +3,13 @@ package models
 import "ulak/internal/apierror"
 
 type SetMessageAutoSendData struct {
-	Status  string `json:"status"`
-	Enabled bool   `json:"enabled"`
+	IsPopulatorEnabled bool `json:"isPopulatorEnabled"`
+	IsProcessorEnabled bool `json:"isProcessorEnabled"`
 }
 
 type GetMessagesData struct {
 	Messages   []*Message `json:"messages"`
-	TotalCount int64      `json:"total_count"`
+	TotalCount int64      `json:"totalCount"`
 	Limit      int        `json:"limit"`
 	Offset     int        `json:"offset"`
 }

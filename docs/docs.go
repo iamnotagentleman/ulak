@@ -158,7 +158,7 @@ const docTemplate = `{
                 "offset": {
                     "type": "integer"
                 },
-                "total_count": {
+                "totalCount": {
                     "type": "integer"
                 }
             }
@@ -213,11 +213,11 @@ const docTemplate = `{
         "models.SetMessageAutoSendData": {
             "type": "object",
             "properties": {
-                "enabled": {
+                "isPopulatorEnabled": {
                     "type": "boolean"
                 },
-                "status": {
-                    "type": "string"
+                "isProcessorEnabled": {
+                    "type": "boolean"
                 }
             }
         },
@@ -225,7 +225,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "action": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "start",
+                        "stop"
+                    ]
                 }
             }
         },

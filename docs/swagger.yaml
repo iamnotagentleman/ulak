@@ -17,7 +17,7 @@ definitions:
         type: array
       offset:
         type: integer
-      total_count:
+      totalCount:
         type: integer
     type: object
   models.GetMessagesResponse:
@@ -53,14 +53,17 @@ definitions:
     type: object
   models.SetMessageAutoSendData:
     properties:
-      enabled:
+      isPopulatorEnabled:
         type: boolean
-      status:
-        type: string
+      isProcessorEnabled:
+        type: boolean
     type: object
   models.SetMessageAutoSendRequest:
     properties:
       action:
+        enum:
+        - start
+        - stop
         type: string
     type: object
   models.SetMessageAutoSendResponse:
