@@ -11,5 +11,8 @@ const (
 type MessageChannel string
 
 const (
-	SMS MessageChannel = "SMS"
+	ChannelSMS     MessageChannel = "SMS"
+	ChannelEmail   MessageChannel = "EMAIL"
+	ChannelPush    MessageChannel = "PUSH"
+	ChannelWebhook MessageChannel = "WEBHOOK"
 )

@@ -11,7 +11,13 @@ import (
 )
 
 type EnvVars struct {
-	Redis Redis
+	Redis    Redis
+	Postgres Postgres
+}
+
+type Common struct {
+	KeyValProvider string `env:"KEY_VAL_PROVIDER" default:"redis"`
+	BaseURL        string `env:"BASE_URL" default:"http://127.0.0.1:8080"`
 }
 
 type Redis struct {
@@ -28,6 +34,15 @@ type Redis struct {
 	IdleTimeout        time.Duration `env:"REDIS_IDLE_TIMEOUT" default:"5m"`
 }
 
+type Postgres struct {
+	Host     string `env:"POSTGRES_HOST" default:"localhost"`
+	Port     int    `env:"POSTGRES_PORT" default:"5432"`
+	User     string `env:"POSTGRES_USER" required:"true"`
+	Password string `env:"POSTGRES_PASSWORD" required:"true"`
+	Database string `env:"POSTGRES_DB" required:"true"`
+	SSLMode  string `env:"POSTGRES_SSLMODE" default:"disable"`
+}
+
 func LoadEnvVars() (*EnvVars, error) {
 	err := godotenv.Load(".env")
 
@@ -40,8 +55,14 @@ func LoadEnvVars() (*EnvVars, error) {
 		return nil, fmt.Errorf("loading redis environment variables failed, %s", err.Error())
 	}
 
+	p := Postgres{}
+	if err := env.Set(&p); err != nil {
+		return nil, fmt.Errorf("loading postgres environment variables failed, %s", err.Error())
+	}
+
 	envVars := &EnvVars{
-		Redis: r,
+		Redis:    r,
+		Postgres: p,
 	}
 
 	return envVars, nil

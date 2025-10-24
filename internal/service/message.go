@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"ulak/internal/apierror"
 	"ulak/internal/models"
 )
 
@@ -15,9 +16,44 @@ func (s *service) SetMessageAutoSend(ctx context.Context, req models.SetMessageA
 }
 
 func (s *service) GetSentMessages(ctx context.Context, req models.GetMessagesRequest) models.GetMessagesResponse {
-	// TODO IMPLEMENT ME
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 10 // default page size
+	}
+
+	offset := req.Offset
+	if offset < 0 {
+		offset = 0
+	}
+
+	statusFilter := "SENT"
+
+	// Fetch messages from the store
+	messages, err := s.messageStore.List(ctx, limit, offset, statusFilter)
+	if err != nil {
+		return models.GetMessagesResponse{
+			Result: &apierror.APIError{
+				Code:    500,
+				Message: "Failed to fetch messages: " + err.Error(),
+			},
+			Data: nil,
+		}
+	}
+
+	// Get total count
+	totalCount, err := s.messageStore.GetTotalCount(ctx)
+	if err != nil {
+		totalCount = 0
+
+	}
+
 	return models.GetMessagesResponse{
 		Result: nil,
-		Data:   nil,
+		Data: &models.GetMessagesData{
+			Messages:   messages,
+			TotalCount: totalCount,
+			Limit:      limit,
+			Offset:     offset,
+		},
 	}
 }

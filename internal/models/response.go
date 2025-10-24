@@ -8,8 +8,10 @@ type SetMessageAutoSendData struct {
 }
 
 type GetMessagesData struct {
-	Status  string `json:"status"`
-	Enabled bool   `json:"enabled"`
+	Messages   []*Message `json:"messages"`
+	TotalCount int64      `json:"total_count"`
+	Limit      int        `json:"limit"`
+	Offset     int        `json:"offset"`
 }
 
 type SetMessageAutoSendResponse struct {
@@ -19,5 +21,5 @@ type SetMessageAutoSendResponse struct {
 
 type GetMessagesResponse struct {
 	Result *apierror.APIError `json:"result"`
-	Data   *GetMessagesData
+	Data   *GetMessagesData   `json:"data"`
 }

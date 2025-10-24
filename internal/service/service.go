@@ -4,13 +4,15 @@ import (
 	"context"
 	"ulak/internal/models"
 	"ulak/internal/store/keyval"
+	"ulak/internal/store/message"
 )
 
 // compile-time proofs of service interface implementation
 var _ Service = (*service)(nil)
 
 type service struct {
-	store keyval.KeyValueStore
+	kvStore      keyval.KeyValueStore
+	messageStore message.MessageStore
 }
 
 type Service interface {
@@ -18,8 +20,9 @@ type Service interface {
 	GetSentMessages(ctx context.Context, req models.GetMessagesRequest) models.GetMessagesResponse
 }
 
-func NewService(store keyval.KeyValueStore) Service {
+func NewService(kvStore keyval.KeyValueStore, msgStore message.MessageStore) Service {
 	return &service{
-		store: store,
+		kvStore:      kvStore,
+		messageStore: msgStore,
 	}
 }

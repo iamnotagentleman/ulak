@@ -1,0 +1,21 @@
+# build
+FROM golang:1.24 AS builder
+
+ENV GO111MODULE=on
+
+WORKDIR /app
+
+COPY . .
+
+RUN go mod download
+
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o populator cmd/populator/main.go
+
+# run
+FROM alpine:latest
+
+COPY --from=builder /app/populator /app/populator
+
+WORKDIR /app
+
+ENTRYPOINT [ "./populator" ]

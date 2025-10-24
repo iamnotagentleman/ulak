@@ -7,6 +7,7 @@ import (
 	"ulak/internal/handlers"
 	"ulak/internal/models"
 	"ulak/internal/service"
+	"ulak/internal/store/postgres"
 	"ulak/internal/store/redis"
 
 	_ "ulak/docs"
@@ -17,30 +18,30 @@ import (
 // @title           Ulak API
 // @version         1.0
 // @description     API for managing messages and auto-send functionality
-// @termsOfService  http://swagger.io/terms/
-
-// @contact.name   API Support
-// @contact.email  support@ulak.com
-
-// @license.name  Apache 2.0
-// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host      localhost:8080
 // @BasePath  /
 
 func main() {
 	cfg, err := config.LoadEnvVars()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	redisStore, err := redis.NewRedisStore(cfg.Redis)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s := service.NewService(redisStore)
+	// Initialize key-value store (Redis)
+	kvStore, err := redis.NewRedisStore(cfg.Redis)
+	if err != nil {
+		log.Fatalf("Failed to initialize key-value store: %v", err)
+	}
+
+	// Initialize message store (PostgreSQL)
+	msgStore, err := postgres.NewPostgresStore(cfg.Postgres)
+	if err != nil {
+		log.Fatalf("Failed to initialize message store: %v", err)
+	}
+
+	// Initialize service with both stores
+	s := service.NewService(kvStore, msgStore)
 	handler := handlers.NewHandler(s)
 
 	mux := http.NewServeMux()

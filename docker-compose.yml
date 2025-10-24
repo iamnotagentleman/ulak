@@ -1,16 +1,48 @@
 services:
   app:
-    build: ulak
+    build: .
     ports:
       - "8080:8080"
     environment:
       - REDIS_ADDRESS=redis:6379
       - REDIS_PASSWORD=
       - REDIS_DB=0
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=ulak_user
+      - POSTGRES_PASSWORD=ulak_password
+      - POSTGRES_DB=ulak_db
+      - POSTGRES_SSLMODE=disable
     depends_on:
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      populator:
+        condition: service_completed_successfully
     networks:
       - app-network
+
+  populator:
+    build:
+      context: .
+      dockerfile: Dockerfile.populator
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=ulak_user
+      - POSTGRES_PASSWORD=ulak_password
+      - POSTGRES_DB=ulak_db
+      - POSTGRES_SSLMODE=disable
+      - REDIS_ADDRESS=redis:6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: "no"
 
   redis:
     image: redis:7-alpine
@@ -21,8 +53,27 @@ services:
     networks:
       - app-network
 
+  postgres:
+    image: postgres:18-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=ulak_user
+      - POSTGRES_PASSWORD=ulak_password
+      - POSTGRES_DB=ulak_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ulak_user -d ulak_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   redis_data:
+  postgres_data:
 
 networks:
   app-network:
