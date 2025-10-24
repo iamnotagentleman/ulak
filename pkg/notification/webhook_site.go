@@ -10,6 +10,7 @@ import (
 	"math"
 	"net/http"
 	"time"
+	"ulak/internal/config"
 
 	"golang.org/x/time/rate"
 )
@@ -26,23 +27,6 @@ type WebhookNotificationService struct {
 	InitialRetryDelay        time.Duration
 	MaxRetryDelay            time.Duration
 	RateLimiter              *rate.Limiter
-}
-
-type WebhookConfig struct {
-	BaseUrl                string
-	Endpoint               string
-	ApiKey                 string
-	TimeoutSeconds         int
-	MaxIdleConns           int
-	MaxIdleConnsPerHost    int
-	IdleConnTimeoutSeconds int
-	DisableCompression     bool
-	DisableKeepAlives      bool
-	MaxRetries             int
-	InitialRetryDelayMs    int
-	MaxRetryDelayMs        int
-	RateLimitPerSecond     int
-	RateLimitBurst         int
 }
 
 func (s *WebhookNotificationService) SendNotification(ctx context.Context, input Input) (AcknowledgeResponse, error) {
@@ -125,40 +109,40 @@ func (s *WebhookNotificationService) isRetriable(err error, statusCode int) bool
 	return statusCode == 408 || statusCode == 429 || statusCode >= 500
 }
 
-func NewWebhookNotificationService(config WebhookConfig) WebhookNotificationService {
+func NewWebhookNotificationService(cfg config.Notification) WebhookNotificationService {
 	transport := &http.Transport{
-		MaxIdleConns:        config.MaxIdleConns,
-		MaxIdleConnsPerHost: config.MaxIdleConnsPerHost,
-		IdleConnTimeout:     time.Duration(config.IdleConnTimeoutSeconds) * time.Second,
-		DisableCompression:  config.DisableCompression,
-		DisableKeepAlives:   config.DisableKeepAlives,
+		MaxIdleConns:        cfg.HttpMaxIdleConns,
+		MaxIdleConnsPerHost: cfg.HttpMaxIdleConnsPerHost,
+		IdleConnTimeout:     time.Duration(cfg.HttpIdleConnTimeout) * time.Second,
+		DisableCompression:  cfg.HttpDisableCompression,
+		DisableKeepAlives:   cfg.HttpDisableKeepAlives,
 	}
 
-	timeout := time.Duration(config.TimeoutSeconds) * time.Second
+	timeout := time.Duration(cfg.HttpTimeoutSeconds) * time.Second
 
 	httpClient := &http.Client{
 		Transport: transport,
 		Timeout:   timeout,
 	}
 
-	maxRetries := config.MaxRetries
+	maxRetries := cfg.MaxRetries
 
 	if maxRetries < 0 {
 		maxRetries = 0
 	}
 
-	initialRetryDelay := time.Duration(config.InitialRetryDelayMs) * time.Millisecond
-	maxRetryDelay := time.Duration(config.MaxRetryDelayMs) * time.Millisecond
+	initialRetryDelay := time.Duration(cfg.InitialRetryDelayMs) * time.Millisecond
+	maxRetryDelay := time.Duration(cfg.MaxRetryDelayMs) * time.Millisecond
 
-	rateLimitPerSecond := config.RateLimitPerSecond
-	rateLimitBurst := config.RateLimitBurst
+	rateLimitPerSecond := cfg.RateLimitPerSecond
+	rateLimitBurst := cfg.RateLimitBurst
 
 	limiter := rate.NewLimiter(rate.Limit(rateLimitPerSecond), rateLimitBurst)
 
 	return WebhookNotificationService{
-		BaseUrl:                  config.BaseUrl,
-		SendNotificationEndpoint: config.Endpoint,
-		ApiKey:                   config.ApiKey,
+		BaseUrl:                  cfg.WebhookBaseUrl,
+		SendNotificationEndpoint: cfg.WebhookEndpoint,
+		ApiKey:                   cfg.WebhookApiKey,
 		HttpClient:               httpClient,
 		MaxRetries:               maxRetries,
 		InitialRetryDelay:        initialRetryDelay,
