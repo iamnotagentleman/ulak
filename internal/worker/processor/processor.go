@@ -2,14 +2,17 @@ package processor
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
 	"ulak/internal/config"
+	"ulak/internal/enums"
 	"ulak/internal/models"
 	"ulak/internal/store/keyval"
+	"ulak/internal/store/message"
 	"ulak/pkg/notification"
 
 	"golang.org/x/time/rate"
@@ -20,6 +23,7 @@ import (
 type MessageProcessorWorker struct {
 	cfg                 config.MessageWorker
 	kvStore             keyval.KeyValueStore
+	msgStore            message.MessageStore
 	notificationService notification.NotificationService
 	// Metrics
 	processedCount atomic.Int64
@@ -32,10 +36,11 @@ type MessageProcessorWorker struct {
 	mu     sync.Mutex
 }
 
-func NewMessageProcessor(cfg config.MessageWorker, store keyval.KeyValueStore, notificationService notification.NotificationService) *MessageProcessorWorker {
+func NewMessageProcessor(cfg config.MessageWorker, kvStore keyval.KeyValueStore, msgStore message.MessageStore, notificationService notification.NotificationService) *MessageProcessorWorker {
 	return &MessageProcessorWorker{
 		cfg:                 cfg,
-		kvStore:             store,
+		kvStore:             kvStore,
+		msgStore:            msgStore,
 		notificationService: notificationService,
 		done:                make(chan struct{}),
 	}
@@ -48,22 +53,105 @@ func (p *MessageProcessorWorker) GetMetrics() (processed, failed int64) {
 
 // processMessage handles individual message processing with error recovery
 func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models.Message) error {
-	// TODO: Implement actual message processing logic
 	log.WithFields(log.Fields{
 		"message_id": msg.ID,
 		"offset":     msg.Offset,
 	}).Debug("Processing message")
 
+	// Begin database transaction
+	tx := p.msgStore.GetDB().Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
+	}
+
+	// transaction roll back on error
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			log.WithFields(log.Fields{
+				"message_id": msg.ID,
+				"panic":      r,
+			}).Error("Panic during message processing, transaction rolled back")
+		}
+	}()
+
+	// Send notification Step
 	input := notification.Input{
 		To:      msg.To,
-		Content: msg.Content,
+		Content: msg.Message,
 	}
 
 	resp, err := p.notificationService.SendNotification(ctx, input)
 	if err != nil {
-		return err
+		tx.Rollback()
+		log.WithFields(log.Fields{
+			"message_id": msg.ID,
+			"error":      err,
+		}).Error("Failed to send notification, transaction rolled back")
+
+		// Update message status to FAILED
+		msg.Status = enums.StatusFailed
+		if updateErr := tx.WithContext(ctx).Save(msg).Error; updateErr != nil {
+			log.WithFields(log.Fields{
+				"message_id": msg.ID,
+				"error":      updateErr,
+			}).Error("Failed to update message status to FAILED")
+		} else {
+			tx.Commit()
+		}
+
+		return fmt.Errorf("notification failed: %w", err)
 	}
-	println(msg)
+
+	msg.Status = enums.StatusSent
+	if err := tx.WithContext(ctx).Save(msg).Error; err != nil {
+		tx.Rollback()
+		log.WithFields(log.Fields{
+			"message_id": msg.ID,
+			"error":      err,
+		}).Error("Failed to update message status, transaction rolled back")
+		return fmt.Errorf("failed to update message: %w", err)
+	}
+
+	// Redis Data Write Step
+	redisData := map[string]interface{}{
+		"response":     resp,
+		"processed_at": time.Now().Unix(),
+	}
+
+	redisJSON, err := json.Marshal(redisData)
+	if err != nil {
+		tx.Rollback()
+		log.WithFields(log.Fields{
+			"message_id": msg.ID,
+			"error":      err,
+		}).Error("Failed to marshal Redis data, transaction rolled back")
+		return fmt.Errorf("failed to marshal redis data: %w", err)
+	}
+
+	if err := p.kvStore.SetMessageDelivered(ctx, msg.ID.String(), string(redisJSON), p.cfg.RedisMessageTTLSeconds); err != nil {
+		tx.Rollback()
+		log.WithFields(log.Fields{
+			"message_id": msg.ID,
+			"error":      err,
+		}).Error("Failed to store notification response in Redis, transaction rolled back")
+		return fmt.Errorf("failed to store in redis: %w", err)
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		log.WithFields(log.Fields{
+			"message_id": msg.ID,
+			"error":      err,
+		}).Error("Failed to commit transaction")
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	log.WithFields(log.Fields{
+		"message_id": msg.ID,
+		"offset":     msg.Offset,
+		"status":     msg.Status,
+	}).Info("Message processed successfully")
 
 	return nil
 }

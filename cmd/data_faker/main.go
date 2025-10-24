@@ -33,17 +33,6 @@ func main() {
 
 	ctx := context.Background()
 
-	// Check if data already exists
-	count, err := msgStore.GetTotalCount(ctx)
-	if err != nil {
-		log.Fatal("Failed to get message count:", err)
-	}
-
-	if count > 0 {
-		log.Printf("Database already populated with %d messages. Skipping seed data.\n", count)
-		return
-	}
-
 	// Seed initial messages
 	messages := []*models.Message{
 		{

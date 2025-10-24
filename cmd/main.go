@@ -16,6 +16,7 @@ import (
 	"ulak/internal/store/redis"
 	"ulak/internal/worker/populator"
 	"ulak/internal/worker/processor"
+	"ulak/pkg/notification"
 
 	_ "ulak/docs"
 
@@ -53,9 +54,12 @@ func main() {
 	// Create shared message channel
 	messagesCh := make(chan *models.Message, 100)
 
+	// Initialize webhook notification service
+	webhookService := notification.NewWebhookNotificationService(cfg.Notification)
+
 	// Initialize workers
 	populatorWorker := populator.GetMessagePopulator(cfg.MsgWorker, msgStore)
-	processorWorker := processor.NewMessageProcessor(cfg.MsgWorker, kvStore)
+	processorWorker := processor.NewMessageProcessor(cfg.MsgWorker, kvStore, msgStore, &webhookService)
 
 	// Start populator worker
 	populatorTicker := time.NewTicker(5 * time.Second)
