@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	log.Println("Starting database populator...")
+	log.Println("Starting database data_faker...")
 
 	cfg, err := config.LoadEnvVars()
 	if err != nil {

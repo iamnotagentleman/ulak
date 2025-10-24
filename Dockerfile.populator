@@ -9,7 +9,7 @@ COPY . .
 
 RUN go mod download
 
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o populator cmd/populator/main.go
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o populator cmd/data_faker/main.go
 
 # run
 FROM alpine:latest

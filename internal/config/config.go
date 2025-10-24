@@ -61,6 +61,9 @@ type Notification struct {
 	HttpIdleConnTimeout     int    `env:"HTTP_IDLE_CONN_TIMEOUT" default:"90"`
 	HttpDisableCompression  bool   `env:"HTTP_DISABLE_COMPRESSION" default:"false"`
 	HttpDisableKeepAlives   bool   `env:"HTTP_DISABLE_KEEP_ALIVES" default:"false"`
+	MaxRetries              int    `env:"MAX_RETRIES" default:"3"`
+	InitialRetryDelayMs     int    `env:"INITIAL_RETRY_DELAY_MS" default:"100"`
+	MaxRetryDelayMs         int    `env:"MAX_RETRY_DELAY_MS" default:"10000"`
 }
 
 func LoadEnvVars() (*EnvVars, error) {
