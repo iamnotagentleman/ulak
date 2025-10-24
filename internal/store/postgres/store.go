@@ -22,6 +22,12 @@ type postgresStore struct {
 	db *gorm.DB
 }
 
+type PostgresStore = postgresStore
+
+type postgresTransaction struct {
+	tx *gorm.DB
+}
+
 // NewPostgresStore creates a new PostgreSQL store instance
 func NewPostgresStore(cfg config.Postgres) (message.MessageStore, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
@@ -222,4 +228,9 @@ func (pt *postgresTransaction) Rollback() error {
 		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 	return nil
+}
+
+// GetDB Do not use in production code, script only.
+func (ps *postgresStore) GetDB() *gorm.DB {
+	return ps.db
 }

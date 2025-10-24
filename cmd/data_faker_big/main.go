@@ -100,9 +100,12 @@ func main() {
 	log.Println("Connected to database successfully")
 
 	ctx := context.Background()
-	db := msgStore.GetDB()
 
-	// Seed random data
+	pgStore, ok := msgStore.(*postgres.PostgresStore)
+	if !ok {
+		log.Fatal("Expected PostgresStore implementation")
+	}
+
 	rand.Seed(time.Now().UnixNano())
 
 	startTime := time.Now()
@@ -117,8 +120,7 @@ func main() {
 			messages[i] = generateRandomMessage()
 		}
 
-		// Use GORM's CreateInBatches for efficient bulk insert
-		if err := db.WithContext(ctx).CreateInBatches(messages, BatchSize).Error; err != nil {
+		if err := pgStore.GetDB().WithContext(ctx).CreateInBatches(messages, BatchSize).Error; err != nil {
 			log.Printf("Failed to create batch %d: %v\n", batch+1, err)
 			continue
 		}
