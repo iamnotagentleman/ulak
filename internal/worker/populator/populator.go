@@ -49,10 +49,10 @@ func (p *MessagePopulatorWorker) GetOffset() int64 {
 	return p.lastProcessedOffset.Load()
 }
 
-func (p *MessagePopulatorWorker) fetchPendingMessages(ctx context.Context) []*models.Message {
+func (p *MessagePopulatorWorker) fetchPendingMessages(ctx context.Context, limit int) []*models.Message {
 	status := enums.StatusPending
 	currentOffset := p.GetOffset()
-	messages, err := p.store.ListByOffset(ctx, currentOffset, status, p.cfg.MaxRecordsPerRead)
+	messages, err := p.store.ListByOffset(ctx, currentOffset, status, limit)
 
 	if err != nil {
 		// TODO add alert mechanism & sentry error catch
@@ -87,21 +87,29 @@ func (p *MessagePopulatorWorker) populate(ctx context.Context, ticker *time.Tick
 				log.Warn("skipping tick: still processing previous message batch")
 				continue
 			}
+			fetchLimit := p.cfg.MaxRecordsPerRead
+
+			// Process messages (fetch only what fits in available space)
+			messages := p.fetchPendingMessages(ctx, fetchLimit)
 
 			// Check channel occupancy and apply backpressure if needed
-			occupancy := float64(len(messagesCh)) / float64(cap(messagesCh))
-			if occupancy >= p.cfg.BackpressureThreshold {
+			messagesChCap := cap(messagesCh)
+			messagesChLen := len(messagesCh)
+			availableArea := messagesChCap - messagesChLen
+			messageCount := len(messages)
+
+			if messageCount > availableArea {
 				log.WithFields(log.Fields{
-					"occupancy": fmt.Sprintf("%.2f%%", occupancy*100),
-					"threshold": fmt.Sprintf("%.2f%%", p.cfg.BackpressureThreshold*100),
-					"pause":     p.cfg.BackpressurePauseSeconds,
+					"channelCapacity": messagesChCap,
+					"channelLength":   messagesChLen,
+					"availableArea":   availableArea,
+					"messageCount":    messageCount,
+					"requestedFetch":  fetchLimit,
 				}).Warn("channel near capacity, pausing populator")
 
-				time.Sleep(time.Duration(p.cfg.BackpressurePauseSeconds) * time.Second)
+				p.isProcessing.Store(false)
+				continue
 			}
-
-			// Process messages
-			messages := p.fetchPendingMessages(ctx)
 
 			for _, msg := range messages {
 				err := p.sendMessage(ctx, messagesCh, msg)

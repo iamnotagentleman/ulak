@@ -83,7 +83,6 @@ func (s *WebhookNotificationService) SendNotification(ctx context.Context, input
 		}
 
 		lastErr = fmt.Errorf("webhook returned status %d: %s", resp.StatusCode, string(bodyBytes))
-		log.Printf("webhook error: %v", lastErr)
 
 		if !s.isRetriable(nil, resp.StatusCode) {
 			return AcknowledgeResponse{}, lastErr

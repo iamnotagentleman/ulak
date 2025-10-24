@@ -19,7 +19,7 @@ type EnvVars struct {
 }
 
 type Common struct {
-	MessageChannelSize int `env:"MESSAGE_CHANNEL_SIZE" envDefault:"100"`
+	MessageChannelSize int `env:"MESSAGE_CHANNEL_SIZE" default:"100"`
 }
 
 type MessageWorker struct {
@@ -29,7 +29,6 @@ type MessageWorker struct {
 	RateLimitBurst            int     `env:"RATE_LIMIT_BURST" default:"2"`
 	RedisMessageTTLSeconds    int     `env:"REDIS_MESSAGE_TTL_SECONDS" default:"86400"`
 	BackpressureThreshold     float64 `env:"BACKPRESSURE_THRESHOLD" default:"0.9"`
-	BackpressurePauseSeconds  int     `env:"BACKPRESSURE_PAUSE_SECONDS" default:"5"`
 }
 
 type Redis struct {
@@ -66,7 +65,7 @@ type Notification struct {
 	HttpDisableCompression  bool   `env:"HTTP_DISABLE_COMPRESSION" default:"false"`
 	HttpDisableKeepAlives   bool   `env:"HTTP_DISABLE_KEEP_ALIVES" default:"false"`
 	MaxRetries              int    `env:"MAX_RETRIES" default:"3"`
-	InitialRetryDelayMs     int    `env:"INITIAL_RETRY_DELAY_MS" default:"100"`
+	InitialRetryDelayMs     int    `env:"INITIAL_RETRY_DELAY_MS" default:"500"`
 	MaxRetryDelayMs         int    `env:"MAX_RETRY_DELAY_MS" default:"10000"`
 	RateLimitPerSecond      int    `env:"WEBHOOK_RATE_LIMIT_PER_SECOND" default:"10"`
 	RateLimitBurst          int    `env:"WEBHOOK_RATE_LIMIT_BURST" default:"20"`
