@@ -11,9 +11,10 @@ import (
 )
 
 type EnvVars struct {
-	Redis     Redis
-	Postgres  Postgres
-	MsgWorker MessageWorker
+	Redis        Redis
+	Postgres     Postgres
+	MsgWorker    MessageWorker
+	Notification Notification
 }
 
 type Common struct {
@@ -50,6 +51,18 @@ type Postgres struct {
 	SSLMode  string `env:"POSTGRES_SSLMODE" default:"disable"`
 }
 
+type Notification struct {
+	WebhookBaseUrl          string `env:"WEBHOOK_BASE_URL" required:"true"`
+	WebhookEndpoint         string `env:"WEBHOOK_ENDPOINT" required:"true"`
+	WebhookApiKey           string `env:"WEBHOOK_API_KEY"`
+	HttpTimeoutSeconds      int    `env:"HTTP_TIMEOUT_SECONDS" default:"30"`
+	HttpMaxIdleConns        int    `env:"HTTP_MAX_IDLE_CONNS" default:"100"`
+	HttpMaxIdleConnsPerHost int    `env:"HTTP_MAX_IDLE_CONNS_PER_HOST" default:"10"`
+	HttpIdleConnTimeout     int    `env:"HTTP_IDLE_CONN_TIMEOUT" default:"90"`
+	HttpDisableCompression  bool   `env:"HTTP_DISABLE_COMPRESSION" default:"false"`
+	HttpDisableKeepAlives   bool   `env:"HTTP_DISABLE_KEEP_ALIVES" default:"false"`
+}
+
 func LoadEnvVars() (*EnvVars, error) {
 	err := godotenv.Load(".env")
 
@@ -72,10 +85,16 @@ func LoadEnvVars() (*EnvVars, error) {
 		return nil, fmt.Errorf("loading message worker environment variables failed, %s", err.Error())
 	}
 
+	n := Notification{}
+	if err := env.Set(&n); err != nil {
+		return nil, fmt.Errorf("loading notification environment variables failed, %s", err.Error())
+	}
+
 	envVars := &EnvVars{
-		Redis:     r,
-		Postgres:  p,
-		MsgWorker: mspW,
+		Redis:        r,
+		Postgres:     p,
+		MsgWorker:    mspW,
+		Notification: n,
 	}
 
 	return envVars, nil
