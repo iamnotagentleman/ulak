@@ -41,12 +41,12 @@ func (h *Handler) SetMessageAutoSend(w http.ResponseWriter, req *http.Request) {
 	res, err := json.Marshal(val)
 
 	if err != nil {
-		internalError := http.StatusInternalServerError
-		http.Error(w, err.Error(), internalError)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 }
 
@@ -70,12 +70,12 @@ func (h *Handler) GetSentMessages(w http.ResponseWriter, req *http.Request) {
 	res, err := json.Marshal(val)
 
 	if err != nil {
-		internalError := http.StatusInternalServerError
-		http.Error(w, err.Error(), internalError)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 
 }

@@ -16,6 +16,7 @@ import (
 
 // compile-time proof of interface implementation
 var _ message.MessageStore = (*postgresStore)(nil)
+var _ message.Transaction = (*postgresTransaction)(nil)
 
 type postgresStore struct {
 	db *gorm.DB
@@ -187,6 +188,38 @@ func (ps *postgresStore) GetTotalCount(ctx context.Context) (int64, error) {
 	return count, nil
 }
 
-func (ps *postgresStore) GetDB() *gorm.DB {
-	return ps.db
+func (ps *postgresStore) BeginTx(ctx context.Context) (message.Transaction, error) {
+	tx := ps.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", tx.Error)
+	}
+
+	return &postgresTransaction{tx: tx}, nil
+}
+
+func (pt *postgresTransaction) Update(ctx context.Context, msg *models.Message) error {
+	result := pt.tx.WithContext(ctx).Save(msg)
+	if result.Error != nil {
+		return fmt.Errorf("failed to update message: %w", result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("message not found with id: %s", msg.ID)
+	}
+
+	return nil
+}
+
+func (pt *postgresTransaction) Commit() error {
+	if err := pt.tx.Commit().Error; err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
+func (pt *postgresTransaction) Rollback() error {
+	if err := pt.tx.Rollback().Error; err != nil {
+		return fmt.Errorf("failed to rollback transaction: %w", err)
+	}
+	return nil
 }

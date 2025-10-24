@@ -51,7 +51,17 @@ func (p *MessageProcessorWorker) GetMetrics() (processed, failed int64) {
 	return p.processedCount.Load(), p.failedCount.Load()
 }
 
-// processMessage handles individual message processing with error recovery
+func (p *MessageProcessorWorker) updateMessageStatus(ctx context.Context, msg *models.Message, status enums.MessageSendingStatus) {
+	msg.Status = status
+	if err := p.msgStore.Update(ctx, msg); err != nil {
+		log.WithFields(log.Fields{
+			"message_id": msg.ID,
+			"status":     status,
+			"error":      err,
+		}).Error("Failed to update message status")
+	}
+}
+
 func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models.Message) error {
 	log.WithFields(log.Fields{
 		"message_id": msg.ID,
@@ -59,9 +69,9 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 	}).Debug("Processing message")
 
 	// Begin database transaction
-	tx := p.msgStore.GetDB().Begin()
-	if tx.Error != nil {
-		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
+	tx, err := p.msgStore.BeginTx(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	// transaction roll back on error
@@ -89,25 +99,12 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 			"error":      err,
 		}).Error("Failed to send notification, transaction rolled back")
 
-		msg.Status = enums.StatusFailed
-		newTx := p.msgStore.GetDB().Begin()
-		if newTx.Error == nil {
-			if updateErr := newTx.WithContext(ctx).Save(msg).Error; updateErr != nil {
-				newTx.Rollback()
-				log.WithFields(log.Fields{
-					"message_id": msg.ID,
-					"error":      updateErr,
-				}).Error("Failed to update message status to FAILED")
-			} else {
-				newTx.Commit()
-			}
-		}
-
+		p.updateMessageStatus(ctx, msg, enums.StatusFailed)
 		return fmt.Errorf("notification failed: %w", err)
 	}
 
 	msg.Status = enums.StatusSent
-	if err := tx.WithContext(ctx).Save(msg).Error; err != nil {
+	if err := tx.Update(ctx, msg); err != nil {
 		tx.Rollback()
 		log.WithFields(log.Fields{
 			"message_id": msg.ID,
@@ -130,20 +127,7 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 			"error":      err,
 		}).Error("Failed to marshal Redis data, transaction rolled back")
 
-		msg.Status = enums.StatusFailed
-		newTx := p.msgStore.GetDB().Begin()
-		if newTx.Error == nil {
-			if updateErr := newTx.WithContext(ctx).Save(msg).Error; updateErr != nil {
-				newTx.Rollback()
-				log.WithFields(log.Fields{
-					"message_id": msg.ID,
-					"error":      updateErr,
-				}).Error("Failed to update message status to FAILED")
-			} else {
-				newTx.Commit()
-			}
-		}
-
+		p.updateMessageStatus(ctx, msg, enums.StatusFailed)
 		return fmt.Errorf("failed to marshal redis data: %w", err)
 	}
 
@@ -154,25 +138,12 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 			"error":      err,
 		}).Error("Failed to store notification response in Redis, transaction rolled back")
 
-		msg.Status = enums.StatusFailed
-		newTx := p.msgStore.GetDB().Begin()
-		if newTx.Error == nil {
-			if updateErr := newTx.WithContext(ctx).Save(msg).Error; updateErr != nil {
-				newTx.Rollback()
-				log.WithFields(log.Fields{
-					"message_id": msg.ID,
-					"error":      updateErr,
-				}).Error("Failed to update message status to FAILED")
-			} else {
-				newTx.Commit()
-			}
-		}
-
+		p.updateMessageStatus(ctx, msg, enums.StatusFailed)
 		return fmt.Errorf("failed to store in redis: %w", err)
 	}
 
 	// Commit transaction
-	if err := tx.Commit().Error; err != nil {
+	if err := tx.Commit(); err != nil {
 		log.WithFields(log.Fields{
 			"message_id": msg.ID,
 			"error":      err,

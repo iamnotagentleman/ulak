@@ -4,11 +4,15 @@ import (
 	"context"
 	"ulak/internal/enums"
 	"ulak/internal/models"
-
-	"gorm.io/gorm"
 )
 
-// MessageStore defines the interface for message persistence operations
+// Transaction represents a database transaction
+type Transaction interface {
+	Update(ctx context.Context, message *models.Message) error
+	Commit() error
+	Rollback() error
+}
+
 type MessageStore interface {
 	Create(ctx context.Context, message *models.Message) error
 	GetByID(ctx context.Context, id string) (*models.Message, error)
@@ -18,5 +22,5 @@ type MessageStore interface {
 	Update(ctx context.Context, message *models.Message) error
 	Delete(ctx context.Context, id string) error
 	GetTotalCount(ctx context.Context) (int64, error)
-	GetDB() *gorm.DB
+	BeginTx(ctx context.Context) (Transaction, error)
 }
