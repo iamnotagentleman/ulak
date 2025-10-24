@@ -88,6 +88,18 @@ func (p *MessagePopulatorWorker) populate(ctx context.Context, ticker *time.Tick
 				continue
 			}
 
+			// Check channel occupancy and apply backpressure if needed
+			occupancy := float64(len(messagesCh)) / float64(cap(messagesCh))
+			if occupancy >= p.cfg.BackpressureThreshold {
+				log.WithFields(log.Fields{
+					"occupancy": fmt.Sprintf("%.2f%%", occupancy*100),
+					"threshold": fmt.Sprintf("%.2f%%", p.cfg.BackpressureThreshold*100),
+					"pause":     p.cfg.BackpressurePauseSeconds,
+				}).Warn("channel near capacity, pausing populator")
+
+				time.Sleep(time.Duration(p.cfg.BackpressurePauseSeconds) * time.Second)
+			}
+
 			// Process messages
 			messages := p.fetchPendingMessages(ctx)
 
@@ -96,7 +108,7 @@ func (p *MessagePopulatorWorker) populate(ctx context.Context, ticker *time.Tick
 
 				if err != nil {
 					p.isProcessing.Store(false)
-					return err
+					log.WithError(err).Error("error processing message")
 				}
 
 			}

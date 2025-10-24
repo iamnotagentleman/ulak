@@ -52,7 +52,7 @@ func main() {
 	defer cancel()
 
 	// Create shared message channel
-	messagesCh := make(chan *models.Message, 100)
+	messagesCh := make(chan *models.Message, cfg.Common.MessageChannelSize)
 
 	// Initialize webhook notification service
 	webhookService := notification.NewWebhookNotificationService(cfg.Notification)

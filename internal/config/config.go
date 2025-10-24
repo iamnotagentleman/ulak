@@ -15,18 +15,21 @@ type EnvVars struct {
 	Postgres     Postgres
 	MsgWorker    MessageWorker
 	Notification Notification
+	Common       Common
 }
 
 type Common struct {
-	MessageChannelSize int `env:"MESSAGE_CHANNEL_SIZE" envDefault:"500"`
+	MessageChannelSize int `env:"MESSAGE_CHANNEL_SIZE" envDefault:"100"`
 }
 
 type MessageWorker struct {
-	MaxRecordsPerRead         int `env:"MAX_RECORDS_PER_RECORD" default:"10"`
-	MessageChannelSendTimeout int `env:"MESSAGE_CHANNEL_SEND_TIMEOUT" default:"10"`
-	RateLimitPerMinute        int `env:"RATE_LIMIT_PER_MINUTE" default:"1"`
-	RateLimitBurst            int `env:"RATE_LIMIT_BURST" default:"2"`
-	RedisMessageTTLSeconds    int `env:"REDIS_MESSAGE_TTL_SECONDS" default:"86400"`
+	MaxRecordsPerRead         int     `env:"MAX_RECORDS_PER_RECORD" default:"10"`
+	MessageChannelSendTimeout int     `env:"MESSAGE_CHANNEL_SEND_TIMEOUT" default:"10"`
+	RateLimitPerMinute        int     `env:"RATE_LIMIT_PER_MINUTE" default:"1"`
+	RateLimitBurst            int     `env:"RATE_LIMIT_BURST" default:"2"`
+	RedisMessageTTLSeconds    int     `env:"REDIS_MESSAGE_TTL_SECONDS" default:"86400"`
+	BackpressureThreshold     float64 `env:"BACKPRESSURE_THRESHOLD" default:"0.9"`
+	BackpressurePauseSeconds  int     `env:"BACKPRESSURE_PAUSE_SECONDS" default:"5"`
 }
 
 type Redis struct {
@@ -96,11 +99,17 @@ func LoadEnvVars() (*EnvVars, error) {
 		return nil, fmt.Errorf("loading notification environment variables failed, %s", err.Error())
 	}
 
+	c := Common{}
+	if err := env.Set(&c); err != nil {
+		return nil, fmt.Errorf("loading notification environment variables failed, %s", err.Error())
+	}
+
 	envVars := &EnvVars{
 		Redis:        r,
 		Postgres:     p,
 		MsgWorker:    mspW,
 		Notification: n,
+		Common:       c,
 	}
 
 	return envVars, nil
