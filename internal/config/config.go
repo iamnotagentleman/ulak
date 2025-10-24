@@ -64,6 +64,8 @@ type Notification struct {
 	MaxRetries              int    `env:"MAX_RETRIES" default:"3"`
 	InitialRetryDelayMs     int    `env:"INITIAL_RETRY_DELAY_MS" default:"100"`
 	MaxRetryDelayMs         int    `env:"MAX_RETRY_DELAY_MS" default:"10000"`
+	RateLimitPerSecond      int    `env:"WEBHOOK_RATE_LIMIT_PER_SECOND" default:"10"`
+	RateLimitBurst          int    `env:"WEBHOOK_RATE_LIMIT_BURST" default:"20"`
 }
 
 func LoadEnvVars() (*EnvVars, error) {

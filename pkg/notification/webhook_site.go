@@ -10,6 +10,8 @@ import (
 	"math"
 	"net/http"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 // compile-time proofs of WebhookNotificationService interface implementation
@@ -23,6 +25,7 @@ type WebhookNotificationService struct {
 	MaxRetries               int
 	InitialRetryDelay        time.Duration
 	MaxRetryDelay            time.Duration
+	RateLimiter              *rate.Limiter
 }
 
 type WebhookConfig struct {
@@ -38,6 +41,8 @@ type WebhookConfig struct {
 	MaxRetries             int
 	InitialRetryDelayMs    int
 	MaxRetryDelayMs        int
+	RateLimitPerSecond     int
+	RateLimitBurst         int
 }
 
 func (s *WebhookNotificationService) SendNotification(ctx context.Context, input Input) (AcknowledgeResponse, error) {
@@ -59,6 +64,10 @@ func (s *WebhookNotificationService) SendNotification(ctx context.Context, input
 			case <-ctx.Done():
 				return AcknowledgeResponse{}, ctx.Err()
 			}
+		}
+
+		if err := s.RateLimiter.Wait(ctx); err != nil {
+			return AcknowledgeResponse{}, err
 		}
 
 		req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonData))
@@ -141,6 +150,11 @@ func NewWebhookNotificationService(config WebhookConfig) WebhookNotificationServ
 	initialRetryDelay := time.Duration(config.InitialRetryDelayMs) * time.Millisecond
 	maxRetryDelay := time.Duration(config.MaxRetryDelayMs) * time.Millisecond
 
+	rateLimitPerSecond := config.RateLimitPerSecond
+	rateLimitBurst := config.RateLimitBurst
+
+	limiter := rate.NewLimiter(rate.Limit(rateLimitPerSecond), rateLimitBurst)
+
 	return WebhookNotificationService{
 		BaseUrl:                  config.BaseUrl,
 		SendNotificationEndpoint: config.Endpoint,
@@ -149,5 +163,6 @@ func NewWebhookNotificationService(config WebhookConfig) WebhookNotificationServ
 		MaxRetries:               maxRetries,
 		InitialRetryDelay:        initialRetryDelay,
 		MaxRetryDelay:            maxRetryDelay,
+		RateLimiter:              limiter,
 	}
 }
