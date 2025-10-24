@@ -89,15 +89,18 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 			"error":      err,
 		}).Error("Failed to send notification, transaction rolled back")
 
-		// Update message status to FAILED
 		msg.Status = enums.StatusFailed
-		if updateErr := tx.WithContext(ctx).Save(msg).Error; updateErr != nil {
-			log.WithFields(log.Fields{
-				"message_id": msg.ID,
-				"error":      updateErr,
-			}).Error("Failed to update message status to FAILED")
-		} else {
-			tx.Commit()
+		newTx := p.msgStore.GetDB().Begin()
+		if newTx.Error == nil {
+			if updateErr := newTx.WithContext(ctx).Save(msg).Error; updateErr != nil {
+				newTx.Rollback()
+				log.WithFields(log.Fields{
+					"message_id": msg.ID,
+					"error":      updateErr,
+				}).Error("Failed to update message status to FAILED")
+			} else {
+				newTx.Commit()
+			}
 		}
 
 		return fmt.Errorf("notification failed: %w", err)
@@ -126,6 +129,21 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 			"message_id": msg.ID,
 			"error":      err,
 		}).Error("Failed to marshal Redis data, transaction rolled back")
+
+		msg.Status = enums.StatusFailed
+		newTx := p.msgStore.GetDB().Begin()
+		if newTx.Error == nil {
+			if updateErr := newTx.WithContext(ctx).Save(msg).Error; updateErr != nil {
+				newTx.Rollback()
+				log.WithFields(log.Fields{
+					"message_id": msg.ID,
+					"error":      updateErr,
+				}).Error("Failed to update message status to FAILED")
+			} else {
+				newTx.Commit()
+			}
+		}
+
 		return fmt.Errorf("failed to marshal redis data: %w", err)
 	}
 
@@ -135,6 +153,21 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 			"message_id": msg.ID,
 			"error":      err,
 		}).Error("Failed to store notification response in Redis, transaction rolled back")
+
+		msg.Status = enums.StatusFailed
+		newTx := p.msgStore.GetDB().Begin()
+		if newTx.Error == nil {
+			if updateErr := newTx.WithContext(ctx).Save(msg).Error; updateErr != nil {
+				newTx.Rollback()
+				log.WithFields(log.Fields{
+					"message_id": msg.ID,
+					"error":      updateErr,
+				}).Error("Failed to update message status to FAILED")
+			} else {
+				newTx.Commit()
+			}
+		}
+
 		return fmt.Errorf("failed to store in redis: %w", err)
 	}
 
