@@ -16,10 +16,16 @@ type EnvVars struct {
 	MsgWorker    MessageWorker
 	Notification Notification
 	Common       Common
+	Auth         Auth
 }
 
 type Common struct {
 	MessageChannelSize int `env:"MESSAGE_CHANNEL_SIZE" default:"100"`
+}
+
+type Auth struct {
+	ApiKey       string `env:"API_KEY" default:"test"`
+	ApiHeaderKey string `env:"API_HEADER_KEY" default:"x-ins-auth-key"`
 }
 
 type MessageWorker struct {
@@ -103,12 +109,18 @@ func LoadEnvVars() (*EnvVars, error) {
 		return nil, fmt.Errorf("loading notification environment variables failed, %s", err.Error())
 	}
 
+	a := Auth{}
+	if err := env.Set(&a); err != nil {
+		return nil, fmt.Errorf("loading auth environment variables failed, %s", err.Error())
+	}
+
 	envVars := &EnvVars{
 		Redis:        r,
 		Postgres:     p,
 		MsgWorker:    mspW,
 		Notification: n,
 		Common:       c,
+		Auth:         a,
 	}
 
 	return envVars, nil

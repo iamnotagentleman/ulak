@@ -17,6 +17,6 @@ type Message struct {
 	Status    enums.MessageSendingStatus `json:"status" gorm:"type:varchar(50);not null;default:'PENDING'"`
 	CreatedAt time.Time                  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time                  `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt gorm.DeletedAt             `json:"deleted_at,omitempty" gorm:"index"`
+	DeletedAt gorm.DeletedAt             `json:"deleted_at,omitempty" gorm:"index" swaggertype:"string"`
 	IsActive  bool                       `json:"is_active" gorm:"default:true"`
 }

@@ -33,6 +33,7 @@ func WithHTTPIn[T any](handler http.HandlerFunc, input T) http.Handler {
 // @Success      200 {object} models.SetMessageAutoSendResponse
 // @Failure      400 {object} models.SetMessageAutoSendResponse
 // @Failure      500 {object} models.SetMessageAutoSendResponse
+// @Security     ApiKeyAuth
 // @Router       /messages/auto-send [post]
 func (h *Handler) SetMessageAutoSend(w http.ResponseWriter, req *http.Request) {
 	input := req.Context().Value(httpin.Input).(*models.SetMessageAutoSendRequest)
@@ -61,6 +62,7 @@ func (h *Handler) SetMessageAutoSend(w http.ResponseWriter, req *http.Request) {
 // @Success      200 {object} models.GetMessagesResponse
 // @Failure      400 {object} models.GetMessagesResponse
 // @Failure      500 {object} models.GetMessagesResponse
+// @Security     ApiKeyAuth
 // @Router       /messages/sent [get]
 func (h *Handler) GetSentMessages(w http.ResponseWriter, req *http.Request) {
 	input := req.Context().Value(httpin.Input).(*models.GetMessagesRequest)

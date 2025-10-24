@@ -16,6 +16,7 @@ import (
 	"ulak/internal/store/redis"
 	"ulak/internal/worker/populator"
 	"ulak/internal/worker/processor"
+	"ulak/middleware"
 	"ulak/pkg/notification"
 
 	_ "ulak/docs"
@@ -29,6 +30,11 @@ import (
 
 // @host      localhost:8080
 // @BasePath  /
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name x-ins-auth-key
+// @description API key authentication.
 
 func main() {
 	cfg, err := config.LoadEnvVars()
@@ -80,8 +86,8 @@ func main() {
 	// Setup HTTP server
 	mux := http.NewServeMux()
 
-	mux.Handle("POST /messages/auto-send", handlers.WithHTTPIn(handler.SetMessageAutoSend, models.SetMessageAutoSendRequest{}))
-	mux.Handle("GET /messages/sent", handlers.WithHTTPIn(handler.GetSentMessages, models.GetMessagesRequest{}))
+	mux.Handle("POST /messages/auto-send", middleware.ApiKeyAuthMiddleware(cfg.Auth, handlers.WithHTTPIn(handler.SetMessageAutoSend, models.SetMessageAutoSendRequest{})))
+	mux.Handle("GET /messages/sent", middleware.ApiKeyAuthMiddleware(cfg.Auth, handlers.WithHTTPIn(handler.GetSentMessages, models.GetMessagesRequest{})))
 
 	// Swagger UI endpoint
 	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)

@@ -9,10 +9,16 @@ definitions:
     type: object
   models.GetMessagesData:
     properties:
-      enabled:
-        type: boolean
-      status:
-        type: string
+      limit:
+        type: integer
+      messages:
+        items:
+          $ref: '#/definitions/models.Message'
+        type: array
+      offset:
+        type: integer
+      total_count:
+        type: integer
     type: object
   models.GetMessagesResponse:
     properties:
@@ -20,6 +26,30 @@ definitions:
         $ref: '#/definitions/models.GetMessagesData'
       result:
         $ref: '#/definitions/apierror.APIError'
+    type: object
+  models.Message:
+    properties:
+      channel:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      message:
+        maxLength: 4096
+        type: string
+      offset:
+        type: integer
+      status:
+        type: string
+      to:
+        type: string
+      updated_at:
+        type: string
     type: object
   models.SetMessageAutoSendData:
     properties:
@@ -42,14 +72,8 @@ definitions:
     type: object
 host: localhost:8080
 info:
-  contact:
-    email: support@ulak.com
-    name: API Support
-  description: API for managing messages and auto-send functionality
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
+  contact: {}
+  description: API key authentication. Use your API key in the x-ins-auth-key header.
   title: Ulak API
   version: "1.0"
 paths:
@@ -80,6 +104,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.SetMessageAutoSendResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Set message auto-send configuration
       tags:
       - messages
@@ -87,7 +113,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve a list of sent messages with pagination
+      description: Retrieve a list of sent messages
       parameters:
       - default: 10
         description: Number of messages to return
@@ -119,7 +145,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.GetMessagesResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Get sent messages
       tags:
       - messages
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: x-ins-auth-key
+    type: apiKey
 swagger: "2.0"

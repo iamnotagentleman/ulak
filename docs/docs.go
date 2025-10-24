@@ -10,15 +10,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "email": "support@ulak.com"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -26,6 +18,11 @@ const docTemplate = `{
     "paths": {
         "/messages/auto-send": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Enable or disable automatic message sending",
                 "consumes": [
                     "application/json"
@@ -72,7 +69,12 @@ const docTemplate = `{
         },
         "/messages/sent": {
             "get": {
-                "description": "Retrieve a list of sent messages with pagination",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of sent messages",
                 "consumes": [
                     "application/json"
                 ],
@@ -144,11 +146,20 @@ const docTemplate = `{
         "models.GetMessagesData": {
             "type": "object",
             "properties": {
-                "enabled": {
-                    "type": "boolean"
+                "limit": {
+                    "type": "integer"
                 },
-                "status": {
-                    "type": "string"
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Message"
+                    }
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total_count": {
+                    "type": "integer"
                 }
             }
         },
@@ -160,6 +171,42 @@ const docTemplate = `{
                 },
                 "result": {
                     "$ref": "#/definitions/apierror.APIError"
+                }
+            }
+        },
+        "models.Message": {
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string",
+                    "maxLength": 4096
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -193,6 +240,13 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "x-ins-auth-key",
+            "in": "header"
+        }
     }
 }`
 
@@ -203,7 +257,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Ulak API",
-	Description:      "API for managing messages and auto-send functionality",
+	Description:      "API key authentication. Use your API key in the x-ins-auth-key header.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }
