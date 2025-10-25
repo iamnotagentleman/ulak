@@ -124,19 +124,19 @@ func main() {
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cfg.Server.ShutdownTimeout)
 	defer shutdownCancel()
 
-	// Cancel worker context
-	cancel()
-
-	workerManager.Stop()
-	// Close message channel
-	close(messagesCh)
-
 	// Shutdown HTTP server
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("HTTP server shutdown error: %v", err)
 	} else {
 		log.Println("HTTP server stopped successfully")
 	}
+
+	cancel()
+
+	// Stop workers gracefully
+	workerManager.Stop()
+
+	close(messagesCh)
 
 	log.Println("Application shutdown complete")
 }
