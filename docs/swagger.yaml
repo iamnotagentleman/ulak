@@ -128,11 +128,6 @@ paths:
         in: query
         name: offset
         type: integer
-      - default: false
-        description: Filter by delivery status
-        in: query
-        name: isDelivered
-        type: boolean
       produces:
       - application/json
       responses:

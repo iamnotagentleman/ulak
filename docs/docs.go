@@ -99,13 +99,6 @@ const docTemplate = `{
                         "description": "Offset for pagination",
                         "name": "offset",
                         "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Filter by delivery status",
-                        "name": "isDelivered",
-                        "in": "query"
                     }
                 ],
                 "responses": {

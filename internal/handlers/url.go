@@ -65,7 +65,6 @@ func (h *Handler) SetMessageAutoSend(w http.ResponseWriter, req *http.Request) {
 // @Produce      json
 // @Param        limit query int false "Number of messages to return" default(10)
 // @Param        offset query int false "Offset for pagination" default(0)
-// @Param        isDelivered query bool false "Filter by delivery status" default(false)
 // @Success      200 {object} models.GetMessagesResponse
 // @Failure      400 {object} models.GetMessagesResponse
 // @Failure      500 {object} models.GetMessagesResponse
