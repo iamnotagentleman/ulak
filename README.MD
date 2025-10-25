@@ -44,7 +44,7 @@ I have kept some things simple. However, they can easily be improved or modified
 ### Misc
 - Migrations: Currently, this project uses automigrate for migration management, in production something it should be different automigrate does not work well.
 - Logging: Logging should be structured and level management needed as well
-
+- Scalability: Current design only allows single producer at once, with proper message queue solution like kafka this can be solvable 
 
 ## Architecture
 
