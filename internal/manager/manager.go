@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 	"ulak/internal/config"
@@ -44,17 +45,19 @@ func NewWorkerManager(
 	}
 }
 
-func (m *WorkerManager) Start() {
+func (m *WorkerManager) Start() error {
 	if err := m.populator.Start(m.ctx, m.ticker, m.messagesCh); err != nil {
-		log.Fatalf("Failed to start populator worker: %v", err)
+		return fmt.Errorf("failed to start populator worker: %w", err)
 	}
 	log.Println("Populator worker started")
 
 	// Start processor worker
 	if err := m.processor.Start(m.ctx, m.messagesCh, nil); err != nil {
-		log.Fatalf("Failed to start processor worker: %v", err)
+		return fmt.Errorf("failed to start processor worker: %w", err)
 	}
 	log.Println("Processor worker started")
+
+	return nil
 }
 
 func (m *WorkerManager) Stop() {

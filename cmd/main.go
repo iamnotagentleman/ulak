@@ -72,7 +72,9 @@ func main() {
 	defer populatorTicker.Stop()
 
 	workerManager := manager.NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, populatorTicker, cfg.Server)
-	workerManager.Start()
+	if err := workerManager.Start(); err != nil {
+		log.Fatalf("Failed to start worker manager: %v", err)
+	}
 
 	s := service.NewService(kvStore, msgStore, workerManager)
 	handler := handlers.NewHandler(s)
