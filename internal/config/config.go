@@ -48,7 +48,7 @@ type Auth struct {
 }
 
 type MessageWorker struct {
-	MaxRecordsPerRead         int           `env:"MAX_RECORDS_PER_RECORD" default:"10"`
+	MaxRecordsPerRead         int           `env:"MAX_RECORDS_PER_READ" default:"10"`
 	MessageChannelSendTimeout int           `env:"MESSAGE_CHANNEL_SEND_TIMEOUT" default:"10"`
 	RateLimitPerMinute        int           `env:"RATE_LIMIT_PER_MINUTE" default:"1"`
 	RateLimitBurst            int           `env:"RATE_LIMIT_BURST" default:"2"`
