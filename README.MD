@@ -109,6 +109,25 @@ docker compose build
 docker-compose up -d
 ```
 
+### API Documentation
+
+The API documentation is available via Swagger UI:
+
+```
+http://localhost:8080/swagger/
+```
+
+**Authentication:**
+all endpoints require API key authentication. Include the following header in your requests:
+
+```
+x-ins-auth-key: secureinsider
+```
+
+You can configure these values in your `.env` file:
+- `API_HEADER_KEY`: The header name for API key (default: `x-ins-auth-key`)
+- `API_KEY`: The API key value (default: `secureinsider`)
+
 ### Testing
 
 
