@@ -8,6 +8,7 @@ import (
 	"ulak/internal/models"
 	"ulak/internal/store/message"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -19,7 +20,8 @@ var _ message.MessageStore = (*postgresStore)(nil)
 var _ message.Transaction = (*postgresTransaction)(nil)
 
 type postgresStore struct {
-	db *gorm.DB
+	db       *gorm.DB
+	validate *validator.Validate
 }
 
 type PostgresStore = postgresStore
@@ -46,10 +48,18 @@ func NewPostgresStore(cfg config.Postgres) (message.MessageStore, error) {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
-	return &postgresStore{db: db}, nil
+	return &postgresStore{
+		db:       db,
+		validate: validator.New(),
+	}, nil
 }
 
 func (ps *postgresStore) Create(ctx context.Context, msg *models.Message) error {
+	// Validate message before creating
+	if err := ps.validate.Struct(msg); err != nil {
+		return fmt.Errorf("message validation failed: %w", err)
+	}
+
 	if msg.ID == uuid.Nil {
 		msg.ID = uuid.New()
 	}
