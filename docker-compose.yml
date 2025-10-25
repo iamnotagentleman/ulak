@@ -4,15 +4,44 @@ services:
     ports:
       - "8080:8080"
     environment:
+      # Redis Configuration
       - REDIS_ADDRESS=redis:6379
       - REDIS_PASSWORD=
       - REDIS_DB=0
+
+      # Postgres Configuration
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=ulak_user
       - POSTGRES_PASSWORD=ulak_password
       - POSTGRES_DB=ulak_db
       - POSTGRES_SSLMODE=disable
+
+      # Webhook/Notification Configuration
+      - WEBHOOK_BASE_URL=https://webhook.site
+      - WEBHOOK_ENDPOINT=e76a5f29-6df4-48c9-97c2-df79857cd6e1
+      - WEBHOOK_API_KEY=INS.me1x9uMcyYGlhKKQVPoc.bO3j9aZwRTOcA2Ywo
+      - HTTP_TIMEOUT_SECONDS=30
+      - HTTP_MAX_IDLE_CONNS=100
+      - HTTP_MAX_IDLE_CONNS_PER_HOST=10
+      - HTTP_IDLE_CONN_TIMEOUT=90
+      - HTTP_DISABLE_COMPRESSION=false
+      - HTTP_DISABLE_KEEP_ALIVES=false
+
+      # Redis Message TTL
+      - REDIS_MESSAGE_TTL_SECONDS=1200
+
+      # API Authentication
+      - API_HEADER_KEY=x-ins-auth-key
+      - API_KEY=secureinsider
+
+      # Server Configuration
+      - SERVER_PORT=8080
+      - SERVER_SHUTDOWN_TIMEOUT=30s
+      - WORKER_STOP_TIMEOUT=10s
+      - POPULATOR_INTERVAL=5s
+      - SWAGGER_HOST=localhost:8080
+      - SWAGGER_BASE_PATH=/
     depends_on:
       postgres:
         condition: service_healthy
@@ -28,15 +57,44 @@ services:
       context: .
       dockerfile: Dockerfile.populator
     environment:
+      # Postgres Configuration
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=ulak_user
       - POSTGRES_PASSWORD=ulak_password
       - POSTGRES_DB=ulak_db
       - POSTGRES_SSLMODE=disable
+
+      # Redis Configuration
       - REDIS_ADDRESS=redis:6379
       - REDIS_PASSWORD=
       - REDIS_DB=0
+
+      # Webhook/Notification Configuration
+      - WEBHOOK_BASE_URL=https://webhook.site
+      - WEBHOOK_ENDPOINT=e76a5f29-6df4-48c9-97c2-df79857cd6e1
+      - WEBHOOK_API_KEY=INS.me1x9uMcyYGlhKKQVPoc.bO3j9aZwRTOcA2Ywo
+      - HTTP_TIMEOUT_SECONDS=30
+      - HTTP_MAX_IDLE_CONNS=100
+      - HTTP_MAX_IDLE_CONNS_PER_HOST=10
+      - HTTP_IDLE_CONN_TIMEOUT=90
+      - HTTP_DISABLE_COMPRESSION=false
+      - HTTP_DISABLE_KEEP_ALIVES=false
+
+      # Redis Message TTL
+      - REDIS_MESSAGE_TTL_SECONDS=1200
+
+      # API Authentication
+      - API_HEADER_KEY=x-ins-auth-key
+      - API_KEY=secureinsider
+
+      # Server Configuration
+      - SERVER_PORT=8080
+      - SERVER_SHUTDOWN_TIMEOUT=30s
+      - WORKER_STOP_TIMEOUT=10s
+      - POPULATOR_INTERVAL=5s
+      - SWAGGER_HOST=localhost:8080
+      - SWAGGER_BASE_PATH=/
     depends_on:
       postgres:
         condition: service_healthy
