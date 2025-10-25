@@ -9,7 +9,6 @@ A high-performance message delivery system built in Go, demonstrating advanced c
 - [Getting Started](#getting-started)
 - [Design Decisions](#design-decisions)
 - [Trade-offs](#trade-offs)
-- [Production Considerations](#production-considerations)
 - [Project Structure](#project-structure)
 - [AI Usage](#ai-usage)
 
@@ -17,6 +16,35 @@ A high-performance message delivery system built in Go, demonstrating advanced c
 
 ULAK is an automatic message delivery system that showcases proficiency in Go concurrency patterns and distributed system design.
 This implementation avoids using traditional message queue solutions (Kafka, RabbitMQ, Redis Queue) to demonstrate low-level understanding of concurrent systems and custom queue implementations.
+
+## Why is this repo not production-ready
+I have kept some things simple. However, they can easily be improved or modified as needed.
+
+### Message Queue Integration
+
+- Proper Message Streaming Solution: Kafka for distributed message streaming
+- Horizontal scalability through partitioning
+- Native support for consumer groups
+- Built-in replication and fault tolerance
+- Rich ecosystem of connectors and tools
+
+### Reliability
+
+- Dead Letter Queue (DLQ): Handle failed messages separately
+- Retry Policies: Exponential backoff with jitter (on consumer)
+- Circuit Breakers: Prevent cascading failures
+- Idempotency: Ensure message processing is idempotent
+
+### Observability
+
+- Metrics: Prometheus/Grafana for monitoring
+- Tracing: OpenTelemetry for distributed tracing, Sentry for error tracking
+- Logging: Structured logs with correlation IDs
+
+### Misc
+- Migrations: Currently, this project uses automigrate for migration management, in production something it should be different automigrate does not work well.
+- Logging: Logging should be structured and level management needed as well
+
 
 ## Architecture
 
@@ -108,11 +136,15 @@ go tool cover -html=coverage.out
 ```bash
 # Start automatic message sending
 curl -X POST http://localhost:8080/messages/auto-send \
+  -H 'accept: application/json' \
+  -H 'x-ins-auth-key: secureinsider' \
   -H "Content-Type: application/json" \
   -d '{"action": "start"}'
 
 # Stop automatic message sending
 curl -X POST http://localhost:8080/messages/auto-send \
+  -H 'accept: application/json' \
+  -H 'x-ins-auth-key: secureinsider' \
   -H "Content-Type: application/json" \
   -d '{"action": "stop"}'
 ```
@@ -187,32 +219,6 @@ To scale the current implementation:
    - Each partition acts as an independent queue
 
 2. **Database Sharding**: Distribute messages across multiple databases
-
-## Production Considerations
-
-For a production-ready system, I would recommend:
-
-### Message Queue Integration
-
-- **Kafka** for distributed message streaming
-  - Horizontal scalability through partitioning
-  - Native support for consumer groups
-  - Built-in replication and fault tolerance
-  - Rich ecosystem of connectors and tools
-
-### Enhanced Reliability
-
-- **Dead Letter Queue (DLQ)**: Handle failed messages separately
-- **Retry Policies**: Exponential backoff with jitter
-- **Circuit Breakers**: Prevent cascading failures
-- **Idempotency**: Ensure message processing is idempotent
-
-
-### Observability
-
-- **Metrics**: Prometheus/Grafana for monitoring
-- **Tracing**: OpenTelemetry for distributed tracing
-- **Logging**: Structured logs with correlation IDs
 
 ## Project Structure
 
