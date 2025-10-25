@@ -66,7 +66,7 @@ func (s *service) GetSentMessages(ctx context.Context, req models.GetMessagesReq
 	if err != nil {
 		return models.GetMessagesResponse{
 			Result: &apierror.APIError{
-				Code:    500,
+				Code:    http.StatusInternalServerError,
 				Message: "Failed to fetch messages: " + err.Error(),
 			},
 			Data: nil,
