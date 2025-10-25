@@ -171,8 +171,10 @@ curl -X POST http://localhost:8080/messages/auto-send \
 #### Retrieve Sent Messages
 
 ```bash
-# Get all sent messages
-curl http://localhost:8080/messages/sent
+# Get all sent messages (First 10)
+curl 'http://localhost:8080/messages/sent?limit=10&offset=0' \
+  -H 'accept: application/json' \
+  -H 'x-ins-auth-key: secureinsider'
 ```
 
 Response format:
