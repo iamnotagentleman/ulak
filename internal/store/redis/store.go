@@ -38,13 +38,24 @@ func (rs *redisStore) SetMessageDelivered(ctx context.Context, messageId, value 
 
 func NewRedisStore(cfg config.Redis) (keyval.KeyValueStore, error) {
 	c := redis.NewClient(&redis.Options{
-		Addr:     cfg.Address,
-		Password: cfg.Password,
-		DB:       cfg.DB,
+		Addr:            cfg.Address,
+		Username:        cfg.Username,
+		Password:        cfg.Password,
+		DB:              cfg.DB,
+		DialTimeout:     cfg.DialTimeout,
+		ReadTimeout:     cfg.ReadTimeout,
+		WriteTimeout:    cfg.WriteTimeout,
+		PoolSize:        cfg.PoolSize,
+		MinIdleConns:    cfg.MinIdleConnections,
+		ConnMaxLifetime: cfg.MaxConnectionAge,
+		ConnMaxIdleTime: cfg.IdleTimeout,
 	})
 
-	if err := c.Ping(context.Background()).Err(); err != nil {
-		return nil, fmt.Errorf("pinging failed, %s", err.Error())
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.DialTimeout)
+	defer cancel()
+
+	if err := c.Ping(ctx).Err(); err != nil {
+		return nil, fmt.Errorf("redis ping failed: %w", err)
 	}
 
 	return &redisStore{

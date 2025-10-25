@@ -41,7 +41,7 @@ func NewPostgresStore(cfg config.Postgres) (message.MessageStore, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	// Auto-migrate the Message model
+	// TODO change in production (golang-migrate)
 	if err := db.AutoMigrate(&models.Message{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
