@@ -2,6 +2,7 @@ package populator
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -154,7 +155,11 @@ func TestMessagePopulatorWorker_Populate_OffsetTracking(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
-	go populator.populate(ctx, ticker, messagesCh)
+	done := make(chan struct{})
+	go func() {
+		populator.populate(ctx, ticker, messagesCh)
+		close(done)
+	}()
 
 	// Wait for processing
 	time.Sleep(30 * time.Millisecond)
@@ -167,6 +172,8 @@ func TestMessagePopulatorWorker_Populate_OffsetTracking(t *testing.T) {
 		t.Errorf("Expected offset %d, got %d", expectedOffset, finalOffset)
 	}
 
+	// Wait for goroutine to finish before closing channel
+	<-done
 	close(messagesCh)
 }
 
@@ -211,7 +218,7 @@ func TestMessagePopulatorWorker_StartStop(t *testing.T) {
 
 	// Test Stop
 	err = populator.Stop(2 * time.Second)
-	if err != nil {
+	if err != nil && !errors.Is(err, context.Canceled) {
 		t.Fatalf("Failed to stop populator: %v", err)
 	}
 

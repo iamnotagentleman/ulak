@@ -39,7 +39,7 @@ func GetMessagePopulator(cfg config.MessageWorker, store message.MessageStore) *
 			store: store,
 			done:  make(chan struct{}),
 		}
-		log.Info("MessagePopulatorWorker singleton populatorInstance created")
+		log.Info("MessagePopulatorWorker populatorInstance created")
 	})
 	return populatorInstance
 }
