@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"ulak/internal/config"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 	"ulak/internal/store/message"
 
@@ -65,7 +64,7 @@ func (ps *postgresStore) Create(ctx context.Context, msg *models.Message) error 
 	}
 
 	if msg.Status == "" {
-		msg.Status = enums.StatusPending
+		msg.Status = models.StatusPending
 	}
 
 	if !msg.IsActive {
@@ -113,7 +112,7 @@ func (ps *postgresStore) GetByOffset(ctx context.Context, offset int64) (*models
 	return &msg, nil
 }
 
-func (ps *postgresStore) ListByOffset(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+func (ps *postgresStore) ListByOffset(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 	var messages []*models.Message
 
 	query := ps.db.WithContext(ctx).Model(&models.Message{}).Where("record_offset > ?", offset)
@@ -136,7 +135,7 @@ func (ps *postgresStore) ListByOffset(ctx context.Context, offset int64, status 
 	return messages, nil
 }
 
-func (ps *postgresStore) List(ctx context.Context, limit, skip int, status enums.MessageSendingStatus) ([]*models.Message, error) {
+func (ps *postgresStore) List(ctx context.Context, limit, skip int, status models.MessageSendingStatus) ([]*models.Message, error) {
 	var messages []*models.Message
 
 	query := ps.db.WithContext(ctx).Model(&models.Message{})

@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"time"
 	"ulak/internal/config"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 	"ulak/internal/store/postgres"
 
@@ -20,17 +19,17 @@ const (
 )
 
 var (
-	channels = []enums.MessageChannel{
-		enums.ChannelEmail,
-		enums.ChannelSMS,
-		enums.ChannelPush,
-		enums.ChannelWebhook,
+	channels = []models.MessageChannel{
+		models.ChannelEmail,
+		models.ChannelSMS,
+		models.ChannelPush,
+		models.ChannelWebhook,
 	}
 
-	statuses = []enums.MessageSendingStatus{
-		enums.StatusPending,
-		enums.StatusSent,
-		enums.StatusFailed,
+	statuses = []models.MessageSendingStatus{
+		models.StatusPending,
+		models.StatusSent,
+		models.StatusFailed,
 	}
 
 	emailTemplates = []string{
@@ -156,22 +155,22 @@ func generateRandomMessage() *models.Message {
 
 	// Generate appropriate To and Message based on channel
 	switch channel {
-	case enums.ChannelEmail:
+	case models.ChannelEmail:
 		msg.To = fmt.Sprintf("user%d@example.com", rand.Intn(10000))
 		template := emailTemplates[rand.Intn(len(emailTemplates))]
 		msg.Message = fmt.Sprintf(template, rand.Intn(999999))
 
-	case enums.ChannelSMS:
+	case models.ChannelSMS:
 		msg.To = fmt.Sprintf("+1%d", 2000000000+rand.Intn(899999999))
 		template := smsTemplates[rand.Intn(len(smsTemplates))]
 		msg.Message = fmt.Sprintf(template, rand.Intn(999999))
 
-	case enums.ChannelPush:
+	case models.ChannelPush:
 		msg.To = fmt.Sprintf("device-token-%s", uuid.New().String()[:8])
 		template := pushTemplates[rand.Intn(len(pushTemplates))]
 		msg.Message = fmt.Sprintf(template, fmt.Sprintf("User%d", rand.Intn(1000)))
 
-	case enums.ChannelWebhook:
+	case models.ChannelWebhook:
 		webhookID := rand.Intn(100)
 		msg.To = fmt.Sprintf("https://webhook.example.com/notify/%d", webhookID)
 		template := webhookTemplates[rand.Intn(len(webhookTemplates))]

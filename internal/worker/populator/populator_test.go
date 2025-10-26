@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 	"ulak/internal/config"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 	testutil "ulak/internal/testing"
 
@@ -133,7 +132,7 @@ func TestMessagePopulatorWorker_Populate_OffsetTracking(t *testing.T) {
 	}
 
 	mockStore := &testutil.MockMessageStore{
-		ListByOffsetFunc: func(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+		ListByOffsetFunc: func(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 			return messages, nil
 		},
 	}
@@ -176,7 +175,7 @@ func TestMessagePopulatorWorker_StartStop(t *testing.T) {
 	defer resetSingleton()
 
 	mockStore := &testutil.MockMessageStore{
-		ListByOffsetFunc: func(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+		ListByOffsetFunc: func(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 			return []*models.Message{}, nil
 		},
 	}

@@ -3,7 +3,6 @@ package postgres
 import (
 	"strings"
 	"testing"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 
 	"github.com/go-playground/validator/v10"
@@ -25,8 +24,8 @@ func TestMessageValidation(t *testing.T) {
 			ID:      uuid.New(),
 			To:      "test@example.com",
 			Message: strings.Repeat("a", 256), // exactly 256 characters
-			Channel: enums.ChannelEmail,
-			Status:  enums.StatusPending,
+			Channel: models.ChannelEmail,
+			Status:  models.StatusPending,
 		}
 
 		// We only test validation, not DB insertion
@@ -41,8 +40,8 @@ func TestMessageValidation(t *testing.T) {
 			ID:      uuid.New(),
 			To:      "test@example.com",
 			Message: strings.Repeat("a", 257), // 257 characters - should fail
-			Channel: enums.ChannelEmail,
-			Status:  enums.StatusPending,
+			Channel: models.ChannelEmail,
+			Status:  models.StatusPending,
 		}
 
 		err := store.validate.Struct(msg)
@@ -56,8 +55,8 @@ func TestMessageValidation(t *testing.T) {
 			ID:      uuid.New(),
 			To:      "test@example.com",
 			Message: "Hello, World!",
-			Channel: enums.ChannelEmail,
-			Status:  enums.StatusPending,
+			Channel: models.ChannelEmail,
+			Status:  models.StatusPending,
 		}
 
 		err := store.validate.Struct(msg)
@@ -71,8 +70,8 @@ func TestMessageValidation(t *testing.T) {
 			ID:      uuid.New(),
 			To:      "test@example.com",
 			Message: "",
-			Channel: enums.ChannelEmail,
-			Status:  enums.StatusPending,
+			Channel: models.ChannelEmail,
+			Status:  models.StatusPending,
 		}
 
 		err := store.validate.Struct(msg)

@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 	"ulak/internal/config"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 	"ulak/internal/store/postgres"
 
@@ -39,40 +38,40 @@ func main() {
 			ID:       uuid.New(),
 			To:       "insider@example.com",
 			Message:  "Welcome to Ulak! This is your first test message. We're always welcome to insiderians :>",
-			Channel:  enums.ChannelEmail,
-			Status:   enums.StatusSent,
+			Channel:  models.ChannelEmail,
+			Status:   models.StatusSent,
 			IsActive: true,
 		},
 		{
 			ID:       uuid.New(),
 			To:       "+1234567890",
 			Message:  "This is a pending SMS notification.",
-			Channel:  enums.ChannelSMS,
-			Status:   enums.StatusPending,
+			Channel:  models.ChannelSMS,
+			Status:   models.StatusPending,
 			IsActive: true,
 		},
 		{
 			ID:       uuid.New(),
 			To:       "device-token-123",
 			Message:  "This is a pending PUSH notification.",
-			Channel:  enums.ChannelPush,
-			Status:   enums.StatusSent,
+			Channel:  models.ChannelPush,
+			Status:   models.StatusSent,
 			IsActive: true,
 		},
 		{
 			ID:       uuid.New(),
 			To:       "failed@example.com",
 			Message:  "Failed email case.",
-			Channel:  enums.ChannelEmail,
-			Status:   enums.StatusFailed,
+			Channel:  models.ChannelEmail,
+			Status:   models.StatusFailed,
 			IsActive: true,
 		},
 		{
 			ID:       uuid.New(),
 			To:       "https://webhook.example.com/notify",
 			Message:  "webhook pending.",
-			Channel:  enums.ChannelWebhook,
-			Status:   enums.StatusPending,
+			Channel:  models.ChannelWebhook,
+			Status:   models.StatusPending,
 			IsActive: true,
 		},
 	}

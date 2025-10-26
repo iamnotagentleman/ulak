@@ -3,7 +3,6 @@ package testing
 import (
 	"context"
 	"sync"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 	"ulak/internal/store/message"
 	"ulak/pkg/notification"
@@ -74,8 +73,8 @@ type MockMessageStore struct {
 	CreateFunc        func(ctx context.Context, message *models.Message) error
 	GetByIDFunc       func(ctx context.Context, id string) (*models.Message, error)
 	GetByOffsetFunc   func(ctx context.Context, offset int64) (*models.Message, error)
-	ListByOffsetFunc  func(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error)
-	ListFunc          func(ctx context.Context, limit, skip int, status enums.MessageSendingStatus) ([]*models.Message, error)
+	ListByOffsetFunc  func(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error)
+	ListFunc          func(ctx context.Context, limit, skip int, status models.MessageSendingStatus) ([]*models.Message, error)
 	UpdateFunc        func(ctx context.Context, message *models.Message) error
 	DeleteFunc        func(ctx context.Context, id string) error
 	GetTotalCountFunc func(ctx context.Context) (int64, error)
@@ -109,7 +108,7 @@ func (m *MockMessageStore) GetByOffset(ctx context.Context, offset int64) (*mode
 	return nil, nil
 }
 
-func (m *MockMessageStore) ListByOffset(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+func (m *MockMessageStore) ListByOffset(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	if m.ListByOffsetFunc != nil {
@@ -118,7 +117,7 @@ func (m *MockMessageStore) ListByOffset(ctx context.Context, offset int64, statu
 	return []*models.Message{}, nil
 }
 
-func (m *MockMessageStore) List(ctx context.Context, limit, skip int, status enums.MessageSendingStatus) ([]*models.Message, error) {
+func (m *MockMessageStore) List(ctx context.Context, limit, skip int, status models.MessageSendingStatus) ([]*models.Message, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	if m.ListFunc != nil {

@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 	"ulak/internal/config"
-	"ulak/internal/enums"
 	"ulak/internal/manager"
 	"ulak/internal/models"
 	"ulak/internal/store/message"
@@ -19,7 +18,7 @@ import (
 // Helper to create a test worker manager
 func createTestWorkerManager(t *testing.T) *manager.WorkerManager {
 	mockMsgStore := &testutil.MockMessageStore{
-		ListByOffsetFunc: func(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+		ListByOffsetFunc: func(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 			return []*models.Message{}, nil
 		},
 		BeginTxFunc: func(ctx context.Context) (message.Transaction, error) {
@@ -114,7 +113,7 @@ func TestService_SetMessageAutoSend_Start(t *testing.T) {
 			svc := NewService(mockKVStore, mockMsgStore, mockManager)
 
 			req := models.SetMessageAutoSendRequest{
-				Action: enums.AutoSendStart,
+				Action: models.AutoSendStart,
 			}
 
 			resp := svc.SetMessageAutoSend(context.Background(), req)
@@ -193,7 +192,7 @@ func TestService_SetMessageAutoSend_Stop(t *testing.T) {
 			svc := NewService(mockKVStore, mockMsgStore, mockManager)
 
 			req := models.SetMessageAutoSendRequest{
-				Action: enums.AutoSendStop,
+				Action: models.AutoSendStop,
 			}
 
 			resp := svc.SetMessageAutoSend(context.Background(), req)
@@ -294,14 +293,14 @@ func TestService_GetSentMessages_Success(t *testing.T) {
 			messages := testutil.NewTestMessages(5, 100)
 
 			mockMsgStore := &testutil.MockMessageStore{
-				ListFunc: func(ctx context.Context, limit, skip int, status enums.MessageSendingStatus) ([]*models.Message, error) {
+				ListFunc: func(ctx context.Context, limit, skip int, status models.MessageSendingStatus) ([]*models.Message, error) {
 					if limit != tt.expectedLimit {
 						t.Errorf("Expected limit %d, got %d", tt.expectedLimit, limit)
 					}
 					if skip != tt.expectedOffset {
 						t.Errorf("Expected offset %d, got %d", tt.expectedOffset, skip)
 					}
-					if status != enums.StatusSent {
+					if status != models.StatusSent {
 						t.Errorf("Expected status SENT, got %s", status)
 					}
 					return messages, nil
@@ -355,7 +354,7 @@ func TestService_GetSentMessages_Success(t *testing.T) {
 
 func TestService_GetSentMessages_DatabaseError(t *testing.T) {
 	mockMsgStore := &testutil.MockMessageStore{
-		ListFunc: func(ctx context.Context, limit, skip int, status enums.MessageSendingStatus) ([]*models.Message, error) {
+		ListFunc: func(ctx context.Context, limit, skip int, status models.MessageSendingStatus) ([]*models.Message, error) {
 			return nil, errors.New("database connection error")
 		},
 	}
@@ -392,7 +391,7 @@ func TestService_GetSentMessages_TotalCountError(t *testing.T) {
 	messages := testutil.NewTestMessages(5, 100)
 
 	mockMsgStore := &testutil.MockMessageStore{
-		ListFunc: func(ctx context.Context, limit, skip int, status enums.MessageSendingStatus) ([]*models.Message, error) {
+		ListFunc: func(ctx context.Context, limit, skip int, status models.MessageSendingStatus) ([]*models.Message, error) {
 			return messages, nil
 		},
 		GetTotalCountFunc: func(ctx context.Context) (int64, error) {

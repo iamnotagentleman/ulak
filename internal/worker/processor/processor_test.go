@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 	"ulak/internal/config"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 	"ulak/internal/store/message"
 	testutil "ulak/internal/testing"
@@ -59,11 +58,11 @@ func TestMessageProcessorWorker_GetMetrics(t *testing.T) {
 
 func TestMessageProcessorWorker_ProcessMessage_Success(t *testing.T) {
 	testMsg := testutil.NewTestMessage(1)
-	testMsg.Status = enums.StatusPending
+	testMsg.Status = models.StatusPending
 
 	mockTx := &testutil.MockTransaction{}
 	mockTx.UpdateFunc = func(ctx context.Context, message *models.Message) error {
-		if message.Status != enums.StatusSent {
+		if message.Status != models.StatusSent {
 			t.Errorf("Expected status SENT, got %s", message.Status)
 		}
 		return nil
@@ -134,7 +133,7 @@ func TestMessageProcessorWorker_ProcessMessage_NotificationFailure(t *testing.T)
 		},
 		UpdateFunc: func(ctx context.Context, message *models.Message) error {
 			// Should update to FAILED status
-			if message.Status != enums.StatusFailed {
+			if message.Status != models.StatusFailed {
 				t.Errorf("Expected status FAILED, got %s", message.Status)
 			}
 			return nil
@@ -254,7 +253,7 @@ func TestMessageProcessorWorker_ProcessMessage_RedisFailure(t *testing.T) {
 			return mockTx, nil
 		},
 		UpdateFunc: func(ctx context.Context, message *models.Message) error {
-			if message.Status != enums.StatusFailed {
+			if message.Status != models.StatusFailed {
 				t.Errorf("Expected status FAILED, got %s", message.Status)
 			}
 			return nil

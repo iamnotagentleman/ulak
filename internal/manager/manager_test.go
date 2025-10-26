@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 	"ulak/internal/config"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 	"ulak/internal/store/message"
 	testutil "ulak/internal/testing"
@@ -65,7 +64,7 @@ func TestNewWorkerManager(t *testing.T) {
 
 func TestWorkerManager_Start(t *testing.T) {
 	mockMsgStore := &testutil.MockMessageStore{
-		ListByOffsetFunc: func(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+		ListByOffsetFunc: func(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 			return []*models.Message{}, nil
 		},
 		BeginTxFunc: func(ctx context.Context) (message.Transaction, error) {
@@ -116,7 +115,7 @@ func TestWorkerManager_Start(t *testing.T) {
 
 func TestWorkerManager_Stop(t *testing.T) {
 	mockMsgStore := &testutil.MockMessageStore{
-		ListByOffsetFunc: func(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+		ListByOffsetFunc: func(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 			return []*models.Message{}, nil
 		},
 		BeginTxFunc: func(ctx context.Context) (message.Transaction, error) {
@@ -169,7 +168,7 @@ func TestWorkerManager_Stop(t *testing.T) {
 
 func TestWorkerManager_GetStatus(t *testing.T) {
 	mockMsgStore := &testutil.MockMessageStore{
-		ListByOffsetFunc: func(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+		ListByOffsetFunc: func(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 			return []*models.Message{}, nil
 		},
 		BeginTxFunc: func(ctx context.Context) (message.Transaction, error) {
@@ -230,7 +229,7 @@ func TestWorkerManager_GracefulShutdown(t *testing.T) {
 	mockTx := &testutil.MockTransaction{}
 
 	mockMsgStore := &testutil.MockMessageStore{
-		ListByOffsetFunc: func(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+		ListByOffsetFunc: func(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 			// Return some messages
 			return testutil.NewTestMessages(2, offset), nil
 		},
@@ -314,7 +313,7 @@ func TestWorkerManager_GracefulShutdown(t *testing.T) {
 
 func TestWorkerManager_StartAlreadyRunning(t *testing.T) {
 	mockMsgStore := &testutil.MockMessageStore{
-		ListByOffsetFunc: func(ctx context.Context, offset int64, status enums.MessageSendingStatus, limit int) ([]*models.Message, error) {
+		ListByOffsetFunc: func(ctx context.Context, offset int64, status models.MessageSendingStatus, limit int) ([]*models.Message, error) {
 			return []*models.Message{}, nil
 		},
 		BeginTxFunc: func(ctx context.Context) (message.Transaction, error) {

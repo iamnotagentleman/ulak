@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 	"time"
 	"ulak/internal/config"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 	"ulak/internal/store/keyval"
 	"ulak/internal/store/message"
@@ -51,7 +50,7 @@ func (p *MessageProcessorWorker) GetMetrics() (processed, failed int64) {
 	return p.processedCount.Load(), p.failedCount.Load()
 }
 
-func (p *MessageProcessorWorker) updateMessageStatus(ctx context.Context, msg *models.Message, status enums.MessageSendingStatus) {
+func (p *MessageProcessorWorker) updateMessageStatus(ctx context.Context, msg *models.Message, status models.MessageSendingStatus) {
 	msg.Status = status
 	if err := p.msgStore.Update(ctx, msg); err != nil {
 		log.WithFields(log.Fields{
@@ -99,11 +98,11 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 			"error":      err,
 		}).Error("Failed to send notification, transaction rolled back")
 
-		p.updateMessageStatus(ctx, msg, enums.StatusFailed)
+		p.updateMessageStatus(ctx, msg, models.StatusFailed)
 		return fmt.Errorf("notification failed: %w", err)
 	}
 
-	msg.Status = enums.StatusSent
+	msg.Status = models.StatusSent
 	if err := tx.Update(ctx, msg); err != nil {
 		tx.Rollback()
 		log.WithFields(log.Fields{
@@ -127,7 +126,7 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 			"error":      err,
 		}).Error("Failed to marshal Redis data, transaction rolled back")
 
-		p.updateMessageStatus(ctx, msg, enums.StatusFailed)
+		p.updateMessageStatus(ctx, msg, models.StatusFailed)
 		return fmt.Errorf("failed to marshal redis data: %w", err)
 	}
 
@@ -138,7 +137,7 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 			"error":      err,
 		}).Error("Failed to store notification response in Redis, transaction rolled back")
 
-		p.updateMessageStatus(ctx, msg, enums.StatusFailed)
+		p.updateMessageStatus(ctx, msg, models.StatusFailed)
 		return fmt.Errorf("failed to store in redis: %w", err)
 	}
 

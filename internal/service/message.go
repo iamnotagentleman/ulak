@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"ulak/internal/apierror"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 )
 
@@ -12,7 +11,7 @@ func (s *service) SetMessageAutoSend(ctx context.Context, req models.SetMessageA
 	status := s.workerManager.GetStatus()
 
 	switch req.Action {
-	case enums.AutoSendStart:
+	case models.AutoSendStart:
 		if status.IsPopulatorActive && status.IsProcessorActive {
 			return models.SetMessageAutoSendResponse{
 				Result: &apierror.APIError{
@@ -22,7 +21,7 @@ func (s *service) SetMessageAutoSend(ctx context.Context, req models.SetMessageA
 				Data: nil}
 		}
 		s.workerManager.Start()
-	case enums.AutoSendStop:
+	case models.AutoSendStop:
 		if !status.IsPopulatorActive && !status.IsProcessorActive {
 			return models.SetMessageAutoSendResponse{
 				Result: &apierror.APIError{
@@ -59,7 +58,7 @@ func (s *service) GetSentMessages(ctx context.Context, req models.GetMessagesReq
 		offset = 0
 	}
 
-	statusFilter := enums.StatusSent
+	statusFilter := models.StatusSent
 
 	// Fetch messages from the store
 	messages, err := s.messageStore.List(ctx, limit, offset, statusFilter)

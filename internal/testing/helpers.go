@@ -2,7 +2,6 @@ package testing
 
 import (
 	"time"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 
 	"github.com/google/uuid"
@@ -15,8 +14,8 @@ func NewTestMessage(offset int64) *models.Message {
 		To:        "test@example.com",
 		Message:   "Test message content",
 		Offset:    offset,
-		Channel:   enums.ChannelEmail,
-		Status:    enums.StatusPending,
+		Channel:   models.ChannelEmail,
+		Status:    models.StatusPending,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		IsActive:  true,

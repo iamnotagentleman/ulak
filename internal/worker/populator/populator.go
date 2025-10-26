@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 	"time"
 	"ulak/internal/config"
-	"ulak/internal/enums"
 	"ulak/internal/models"
 	"ulak/internal/store/message"
 
@@ -50,7 +49,7 @@ func (p *MessagePopulatorWorker) GetOffset() int64 {
 }
 
 func (p *MessagePopulatorWorker) fetchPendingMessages(ctx context.Context, limit int) []*models.Message {
-	status := enums.StatusPending
+	status := models.StatusPending
 	currentOffset := p.GetOffset()
 	messages, err := p.store.ListByOffset(ctx, currentOffset, status, limit)
 
@@ -81,7 +80,7 @@ func (p *MessagePopulatorWorker) populate(ctx context.Context, ticker *time.Tick
 	for {
 		select {
 		case <-ticker.C:
-
+			log.Info("MessagePopulatorWorker checking for messages")
 			// Skip tick if still processing previous batch
 			if !p.isProcessing.CompareAndSwap(false, true) {
 				log.Warn("skipping tick: still processing previous message batch")
@@ -115,7 +114,6 @@ func (p *MessagePopulatorWorker) populate(ctx context.Context, ticker *time.Tick
 				err := p.sendMessage(ctx, messagesCh, msg)
 
 				if err != nil {
-					p.isProcessing.Store(false)
 					log.WithError(err).Error("error processing message")
 				}
 
