@@ -33,6 +33,7 @@ type MessageProcessorWorker struct {
 	done   chan struct{}
 	err    error
 	mu     sync.Mutex
+	wg     sync.WaitGroup
 }
 
 func NewMessageProcessor(cfg config.MessageWorker, kvStore keyval.KeyValueStore, msgStore message.MessageStore, notificationService notification.NotificationService) *MessageProcessorWorker {
@@ -116,6 +117,7 @@ func (p *MessageProcessorWorker) processMessage(ctx context.Context, msg *models
 	redisData := map[string]interface{}{
 		"response":     resp,
 		"processed_at": time.Now().Unix(),
+		"sender":       "processor-worker",
 	}
 
 	redisJSON, err := json.Marshal(redisData)
@@ -171,11 +173,12 @@ func (p *MessageProcessorWorker) Process(ctx context.Context, messagesCh chan *m
 	for {
 		select {
 		case <-ctx.Done():
+			p.wg.Wait()
 			return ctx.Err()
 
 		case msg, ok := <-messagesCh:
 			if !ok {
-				// Channel closed, exit gracefully
+				p.wg.Wait()
 				log.Info("Message channel closed, processor shutting down")
 				return nil
 			}
@@ -183,24 +186,27 @@ func (p *MessageProcessorWorker) Process(ctx context.Context, messagesCh chan *m
 			// Apply rate limiting before processing
 			if err := throttle.Wait(ctx); err != nil {
 				if errors.Is(err, context.Canceled) {
-					log.Info("Context cancelled during rate limit wait,")
+					log.Info("Context cancelled during rate limit wait")
+					p.wg.Wait()
 					return err
 				}
 				log.WithError(err).Error("Rate limiter error")
 				return err
 			}
 
-			// Process message with error recovery
-			if err := p.processMessage(ctx, msg); err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"message_id": msg.ID,
-					"offset":     msg.Offset,
-				}).Error("Failed to process message")
-				p.failedCount.Add(1)
-				// TODO: Add retry logic or dead letter queue
-			} else {
-				p.processedCount.Add(1)
-			}
+			p.wg.Add(1)
+			go func(msg *models.Message) {
+				defer p.wg.Done()
+				if err := p.processMessage(ctx, msg); err != nil {
+					log.WithError(err).WithFields(log.Fields{
+						"message_id": msg.ID,
+						"offset":     msg.Offset,
+					}).Error("Failed to process message")
+					p.failedCount.Add(1)
+				} else {
+					p.processedCount.Add(1)
+				}
+			}(msg)
 		}
 	}
 }
