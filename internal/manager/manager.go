@@ -3,7 +3,6 @@ package manager
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 	"ulak/internal/config"
 	"ulak/internal/models"
@@ -20,7 +19,6 @@ type WorkerManager struct {
 	ticker     *time.Ticker
 	ctx        context.Context
 	cancel     context.CancelFunc
-	mu         sync.Mutex
 	cfg        config.Server
 }
 
