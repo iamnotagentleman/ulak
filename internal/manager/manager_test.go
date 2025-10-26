@@ -33,11 +33,11 @@ func TestNewWorkerManager(t *testing.T) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
-	populatorWorker := populator.GetMessagePopulator(cfg, mockMsgStore)
-	processorWorker := processor.NewMessageProcessor(cfg, mockKVStore, mockMsgStore, mockNotificationService)
+	populatorWorker := populator.GetMessagePopulator(&cfg, mockMsgStore)
+	processorWorker := processor.NewMessageProcessor(&cfg, mockKVStore, mockMsgStore, mockNotificationService)
 
 	ctx := context.Background()
-	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, serverCfg)
+	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, &serverCfg)
 
 	if manager == nil {
 		t.Fatal("Expected non-nil manager")
@@ -88,11 +88,11 @@ func TestWorkerManager_Start(t *testing.T) {
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
-	populatorWorker := populator.GetMessagePopulator(cfg, mockMsgStore)
-	processorWorker := processor.NewMessageProcessor(cfg, mockKVStore, mockMsgStore, mockNotificationService)
+	populatorWorker := populator.GetMessagePopulator(&cfg, mockMsgStore)
+	processorWorker := processor.NewMessageProcessor(&cfg, mockKVStore, mockMsgStore, mockNotificationService)
 
 	ctx := context.Background()
-	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, serverCfg)
+	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, &serverCfg)
 
 	err := manager.Start()
 	if err != nil {
@@ -139,11 +139,11 @@ func TestWorkerManager_Stop(t *testing.T) {
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
-	populatorWorker := populator.GetMessagePopulator(cfg, mockMsgStore)
-	processorWorker := processor.NewMessageProcessor(cfg, mockKVStore, mockMsgStore, mockNotificationService)
+	populatorWorker := populator.GetMessagePopulator(&cfg, mockMsgStore)
+	processorWorker := processor.NewMessageProcessor(&cfg, mockKVStore, mockMsgStore, mockNotificationService)
 
 	ctx := context.Background()
-	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, serverCfg)
+	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, &serverCfg)
 
 	// Start workers
 	err := manager.Start()
@@ -192,11 +192,11 @@ func TestWorkerManager_GetStatus(t *testing.T) {
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
-	populatorWorker := populator.GetMessagePopulator(cfg, mockMsgStore)
-	processorWorker := processor.NewMessageProcessor(cfg, mockKVStore, mockMsgStore, mockNotificationService)
+	populatorWorker := populator.GetMessagePopulator(&cfg, mockMsgStore)
+	processorWorker := processor.NewMessageProcessor(&cfg, mockKVStore, mockMsgStore, mockNotificationService)
 
 	ctx := context.Background()
-	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, serverCfg)
+	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, &serverCfg)
 
 	// Initial status - both stopped
 	status := manager.GetStatus()
@@ -270,11 +270,11 @@ func TestWorkerManager_GracefulShutdown(t *testing.T) {
 	ticker := time.NewTicker(50 * time.Millisecond)
 	defer ticker.Stop()
 
-	populatorWorker := populator.GetMessagePopulator(cfg, mockMsgStore)
-	processorWorker := processor.NewMessageProcessor(cfg, mockKVStore, mockMsgStore, mockNotificationService)
+	populatorWorker := populator.GetMessagePopulator(&cfg, mockMsgStore)
+	processorWorker := processor.NewMessageProcessor(&cfg, mockKVStore, mockMsgStore, mockNotificationService)
 
 	ctx := context.Background()
-	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, serverCfg)
+	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, &serverCfg)
 
 	// Start workers
 	err := manager.Start()
@@ -326,11 +326,11 @@ func TestWorkerManager_StartAlreadyRunning(t *testing.T) {
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
-	populatorWorker := populator.GetMessagePopulator(cfg, mockMsgStore)
-	processorWorker := processor.NewMessageProcessor(cfg, mockKVStore, mockMsgStore, mockNotificationService)
+	populatorWorker := populator.GetMessagePopulator(&cfg, mockMsgStore)
+	processorWorker := processor.NewMessageProcessor(&cfg, mockKVStore, mockMsgStore, mockNotificationService)
 
 	ctx := context.Background()
-	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, serverCfg)
+	manager := NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, &serverCfg)
 
 	// First start should succeed
 	err := manager.Start()

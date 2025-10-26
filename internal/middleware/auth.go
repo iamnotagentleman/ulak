@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func ApiKeyAuthMiddleware(cfg config.Auth, next http.Handler) http.Handler {
+func ApiKeyAuthMiddleware(cfg *config.Auth, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		apiKey := strings.TrimSpace(r.Header.Get(cfg.ApiHeaderKey))
 

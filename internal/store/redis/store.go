@@ -36,7 +36,7 @@ func (rs *redisStore) SetMessageDelivered(ctx context.Context, messageId, value 
 	return err
 }
 
-func NewRedisStore(cfg config.Redis) (keyval.KeyValueStore, error) {
+func NewRedisStore(cfg *config.Redis) (keyval.KeyValueStore, error) {
 	c := redis.NewClient(&redis.Options{
 		Addr:            cfg.Address,
 		Username:        cfg.Username,

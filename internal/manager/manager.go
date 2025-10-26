@@ -19,7 +19,7 @@ type WorkerManager struct {
 	ticker     *time.Ticker
 	ctx        context.Context
 	cancel     context.CancelFunc
-	cfg        config.Server
+	cfg        *config.Server
 }
 
 func NewWorkerManager(
@@ -28,7 +28,7 @@ func NewWorkerManager(
 	processorWorker *processor.MessageProcessorWorker,
 	messagesCh chan *models.Message,
 	ticker *time.Ticker,
-	cfg config.Server,
+	cfg *config.Server,
 ) *WorkerManager {
 	workerCtx, cancel := context.WithCancel(ctx)
 

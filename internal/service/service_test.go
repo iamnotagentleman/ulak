@@ -45,11 +45,11 @@ func createTestWorkerManager(t *testing.T) *manager.WorkerManager {
 		close(messagesCh)
 	})
 
-	populatorWorker := populator.GetMessagePopulator(cfg, mockMsgStore)
-	processorWorker := processor.NewMessageProcessor(cfg, mockKVStore, mockMsgStore, mockNotificationService)
+	populatorWorker := populator.GetMessagePopulator(&cfg, mockMsgStore)
+	processorWorker := processor.NewMessageProcessor(&cfg, mockKVStore, mockMsgStore, mockNotificationService)
 
 	ctx := context.Background()
-	return manager.NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, serverCfg)
+	return manager.NewWorkerManager(ctx, populatorWorker, processorWorker, messagesCh, ticker, &serverCfg)
 }
 
 func TestNewService(t *testing.T) {

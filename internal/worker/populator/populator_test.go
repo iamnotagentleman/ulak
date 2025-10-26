@@ -29,13 +29,13 @@ func TestGetMessagePopulator_Singleton(t *testing.T) {
 	}
 
 	// Get first instance
-	instance1 := GetMessagePopulator(cfg, mockStore)
+	instance1 := GetMessagePopulator(&cfg, mockStore)
 	if instance1 == nil {
 		t.Fatal("Expected non-nil populator instance")
 	}
 
 	// Get second instance - should be same
-	instance2 := GetMessagePopulator(cfg, mockStore)
+	instance2 := GetMessagePopulator(&cfg, mockStore)
 	if instance1 != instance2 {
 		t.Error("Expected singleton pattern to return same instance")
 	}
@@ -48,7 +48,7 @@ func TestMessagePopulatorWorker_GetOffset(t *testing.T) {
 	mockStore := &testutil.MockMessageStore{}
 	cfg := config.MessageWorker{MaxRecordsPerRead: 10}
 
-	populator := GetMessagePopulator(cfg, mockStore)
+	populator := GetMessagePopulator(&cfg, mockStore)
 
 	// Initial offset should be 0
 	if offset := populator.GetOffset(); offset != 0 {
@@ -94,7 +94,7 @@ func TestMessagePopulatorWorker_SendMessage(t *testing.T) {
 			cfg := config.MessageWorker{
 				MessageChannelSendTimeout: tt.timeout,
 			}
-			populator := &MessagePopulatorWorker{cfg: cfg}
+			populator := &MessagePopulatorWorker{cfg: &cfg}
 
 			messagesCh := make(chan *models.Message, tt.channelSize)
 			if tt.preFillCh {
@@ -144,7 +144,7 @@ func TestMessagePopulatorWorker_Populate_OffsetTracking(t *testing.T) {
 	}
 
 	populator := &MessagePopulatorWorker{
-		cfg:   cfg,
+		cfg:   &cfg,
 		store: mockStore,
 	}
 
@@ -192,7 +192,7 @@ func TestMessagePopulatorWorker_StartStop(t *testing.T) {
 		MessageChannelSendTimeout: 5,
 	}
 
-	populator := GetMessagePopulator(cfg, mockStore)
+	populator := GetMessagePopulator(&cfg, mockStore)
 	messagesCh := make(chan *models.Message, 10)
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()

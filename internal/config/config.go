@@ -11,13 +11,13 @@ import (
 )
 
 type EnvVars struct {
-	Redis        Redis
-	Postgres     Postgres
-	MsgWorker    MessageWorker
-	Notification Notification
-	Common       Common
-	Auth         Auth
-	Server       Server
+	Redis        *Redis
+	Postgres     *Postgres
+	MsgWorker    *MessageWorker
+	Notification *Notification
+	Common       *Common
+	Auth         *Auth
+	Server       *Server
 }
 
 type Common struct {
@@ -145,13 +145,13 @@ func LoadEnvVars() (*EnvVars, error) {
 	}
 
 	envVars := &EnvVars{
-		Redis:        r,
-		Postgres:     p,
-		MsgWorker:    mspW,
-		Notification: n,
-		Common:       c,
-		Auth:         a,
-		Server:       s,
+		Redis:        &r,
+		Postgres:     &p,
+		MsgWorker:    &mspW,
+		Notification: &n,
+		Common:       &c,
+		Auth:         &a,
+		Server:       &s,
 	}
 
 	return envVars, nil

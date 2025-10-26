@@ -19,7 +19,7 @@ func TestApiKeyAuthMiddleware_ValidKey(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middleware := ApiKeyAuthMiddleware(cfg, next)
+	middleware := ApiKeyAuthMiddleware(&cfg, next)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	req.Header.Set("x-api-key", "test-api-key-123")
@@ -47,7 +47,7 @@ func TestApiKeyAuthMiddleware_MissingKey(t *testing.T) {
 		nextCalled = true
 	})
 
-	middleware := ApiKeyAuthMiddleware(cfg, next)
+	middleware := ApiKeyAuthMiddleware(&cfg, next)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	// No API key header
@@ -75,7 +75,7 @@ func TestApiKeyAuthMiddleware_EmptyKey(t *testing.T) {
 		nextCalled = true
 	})
 
-	middleware := ApiKeyAuthMiddleware(cfg, next)
+	middleware := ApiKeyAuthMiddleware(&cfg, next)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	req.Header.Set("x-api-key", "")
@@ -103,7 +103,7 @@ func TestApiKeyAuthMiddleware_InvalidKey(t *testing.T) {
 		nextCalled = true
 	})
 
-	middleware := ApiKeyAuthMiddleware(cfg, next)
+	middleware := ApiKeyAuthMiddleware(&cfg, next)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	req.Header.Set("x-api-key", "wrong-api-key")

@@ -26,7 +26,7 @@ func TestNewMessageProcessor(t *testing.T) {
 		RateLimitBurst:     10,
 	}
 
-	processor := NewMessageProcessor(cfg, mockKVStore, mockMsgStore, mockNotificationService)
+	processor := NewMessageProcessor(&cfg, mockKVStore, mockMsgStore, mockNotificationService)
 
 	if processor == nil {
 		t.Fatal("Expected non-nil processor")
@@ -99,7 +99,7 @@ func TestMessageProcessorWorker_ProcessMessage_Success(t *testing.T) {
 	}
 
 	processor := &MessageProcessorWorker{
-		cfg:                 cfg,
+		cfg:                 &cfg,
 		kvStore:             mockKVStore,
 		msgStore:            mockMsgStore,
 		notificationService: mockNotificationService,
@@ -150,7 +150,7 @@ func TestMessageProcessorWorker_ProcessMessage_NotificationFailure(t *testing.T)
 
 	cfg := config.MessageWorker{}
 	processor := &MessageProcessorWorker{
-		cfg:                 cfg,
+		cfg:                 &cfg,
 		kvStore:             mockKVStore,
 		msgStore:            mockMsgStore,
 		notificationService: mockNotificationService,
@@ -272,7 +272,12 @@ func TestMessageProcessorWorker_ProcessMessage_RedisFailure(t *testing.T) {
 		},
 	}
 
+	cfg := config.MessageWorker{
+		RedisMessageTTLSeconds: 86400,
+	}
+
 	processor := &MessageProcessorWorker{
+		cfg:                 &cfg,
 		kvStore:             mockKVStore,
 		msgStore:            mockMsgStore,
 		notificationService: mockNotificationService,
@@ -318,7 +323,12 @@ func TestMessageProcessorWorker_ProcessMessage_CommitFailure(t *testing.T) {
 		},
 	}
 
+	cfg := config.MessageWorker{
+		RedisMessageTTLSeconds: 86400,
+	}
+
 	processor := &MessageProcessorWorker{
+		cfg:                 &cfg,
 		kvStore:             mockKVStore,
 		msgStore:            mockMsgStore,
 		notificationService: mockNotificationService,
@@ -341,7 +351,7 @@ func TestMessageProcessorWorker_Process_ChannelClosed(t *testing.T) {
 	}
 
 	processor := &MessageProcessorWorker{
-		cfg:                 cfg,
+		cfg:                 &cfg,
 		kvStore:             mockKVStore,
 		msgStore:            mockMsgStore,
 		notificationService: mockNotificationService,
@@ -377,7 +387,7 @@ func TestMessageProcessorWorker_StartStop(t *testing.T) {
 		RateLimitBurst:     10,
 	}
 
-	processor := NewMessageProcessor(cfg, mockKVStore, mockMsgStore, mockNotificationService)
+	processor := NewMessageProcessor(&cfg, mockKVStore, mockMsgStore, mockNotificationService)
 	messagesCh := make(chan *models.Message, 10)
 
 	ctx := context.Background()

@@ -20,7 +20,7 @@ import (
 )
 
 type MessageProcessorWorker struct {
-	cfg                 config.MessageWorker
+	cfg                 *config.MessageWorker
 	kvStore             keyval.KeyValueStore
 	msgStore            message.MessageStore
 	notificationService notification.NotificationService
@@ -36,7 +36,7 @@ type MessageProcessorWorker struct {
 	wg     sync.WaitGroup
 }
 
-func NewMessageProcessor(cfg config.MessageWorker, kvStore keyval.KeyValueStore, msgStore message.MessageStore, notificationService notification.NotificationService) *MessageProcessorWorker {
+func NewMessageProcessor(cfg *config.MessageWorker, kvStore keyval.KeyValueStore, msgStore message.MessageStore, notificationService notification.NotificationService) *MessageProcessorWorker {
 	return &MessageProcessorWorker{
 		cfg:                 cfg,
 		kvStore:             kvStore,

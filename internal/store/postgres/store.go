@@ -30,7 +30,7 @@ type postgresTransaction struct {
 }
 
 // NewPostgresStore creates a new PostgreSQL store instance
-func NewPostgresStore(cfg config.Postgres) (message.MessageStore, error) {
+func NewPostgresStore(cfg *config.Postgres) (message.MessageStore, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		cfg.Host, cfg.User, cfg.Password, cfg.Database, cfg.Port, cfg.SSLMode)
 

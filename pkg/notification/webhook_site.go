@@ -108,7 +108,7 @@ func (s *WebhookNotificationService) isRetriable(err error, statusCode int) bool
 	return statusCode == 408 || statusCode == 429 || statusCode >= 500
 }
 
-func NewWebhookNotificationService(cfg config.Notification) WebhookNotificationService {
+func NewWebhookNotificationService(cfg *config.Notification) WebhookNotificationService {
 	transport := &http.Transport{
 		MaxIdleConns:        cfg.HttpMaxIdleConns,
 		MaxIdleConnsPerHost: cfg.HttpMaxIdleConnsPerHost,

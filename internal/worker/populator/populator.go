@@ -21,7 +21,7 @@ var (
 )
 
 type MessagePopulatorWorker struct {
-	cfg                 config.MessageWorker
+	cfg                 *config.MessageWorker
 	store               message.MessageStore
 	lastProcessedOffset atomic.Int64
 	isProcessing        atomic.Bool
@@ -32,7 +32,7 @@ type MessagePopulatorWorker struct {
 	mu     sync.Mutex
 }
 
-func GetMessagePopulator(cfg config.MessageWorker, store message.MessageStore) *MessagePopulatorWorker {
+func GetMessagePopulator(cfg *config.MessageWorker, store message.MessageStore) *MessagePopulatorWorker {
 	once.Do(func() {
 		populatorInstance = &MessagePopulatorWorker{
 			cfg:   cfg,
